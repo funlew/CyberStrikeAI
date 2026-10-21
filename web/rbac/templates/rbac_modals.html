@@ -1,0 +1,88 @@
+{{define "rbac/modals"}}
+<div id="rbac-user-modal" class="modal">
+        <div class="modal-content" style="max-width: 640px;">
+            <div class="modal-header">
+                <h2 id="rbac-user-modal-title" data-i18n="rbac.userModalTitle">平台用户</h2>
+                <span class="modal-close" onclick="closeRbacUserModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rbac-user-id">
+                <div class="form-group">
+                    <label for="rbac-username" data-i18n="rbac.username">用户名</label>
+                    <input type="text" id="rbac-username" class="form-input" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rbac-display-name" data-i18n="rbac.displayName">显示名称</label>
+                    <input type="text" id="rbac-display-name" class="form-input" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rbac-password" data-i18n="rbac.password">密码</label>
+                    <input type="password" id="rbac-password" class="form-input" autocomplete="new-password" placeholder="编辑时留空表示不修改" data-i18n="rbac.passwordPlaceholder" data-i18n-attr="placeholder">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rbac-user-enabled" class="modern-checkbox" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text" data-i18n="rbac.enabled">启用账号</span>
+                    </label>
+                </div>
+                <div class="form-group" id="rbac-user-roles-create-section">
+                    <label data-i18n="rbac.roles">角色</label>
+                    <div id="rbac-user-role-checkboxes" class="rbac-checkbox-grid"></div>
+                </div>
+                <div class="form-group" id="rbac-user-roles-edit-section" hidden>
+                    <label data-i18n="rbac.roles">角色</label>
+                    <div id="rbac-user-roles-readonly" class="rbac-user-roles-readonly"></div>
+                    <p class="rbac-field-hint" data-i18n="rbac.editUserRolesHint">角色请在成员详情页的「角色权限」标签中统一管理。</p>
+                    <button type="button" class="btn-secondary btn-small" onclick="openRbacRolesFromUserModal()" data-i18n="rbac.assignRolesNow">去分配角色</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" type="button" onclick="closeRbacUserModal()" data-i18n="common.cancel">取消</button>
+                <button class="btn-primary" data-require-permission="rbac:write" type="button" onclick="saveRbacUser()" data-i18n="common.save">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rbac-role-modal" class="modal">
+        <div class="modal-content" style="max-width: 840px;">
+            <div class="modal-header">
+                <h2 id="rbac-role-modal-title" data-i18n="rbac.roleModalTitle">平台角色</h2>
+                <span class="modal-close" onclick="closeRbacRoleModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rbac-role-id">
+                <div class="form-group">
+                    <label for="rbac-role-name" data-i18n="rbac.roleName">角色名称</label>
+                    <input type="text" id="rbac-role-name" class="form-input" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rbac-role-description" data-i18n="rbac.description">描述</label>
+                    <input type="text" id="rbac-role-description" class="form-input" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rbac-role-scope" data-i18n="rbac.scope">资源范围</label>
+                    <select id="rbac-role-scope" class="form-select rbac-form-select">
+                        <option value="all" data-i18n="rbac.scopes.all.option">全部资源 — 可访问平台内所有数据</option>
+                        <option value="assigned" data-i18n="rbac.scopes.assigned.option">指定资源 — 仅访问管理员授权的数据</option>
+                        <option value="own" data-i18n="rbac.scopes.own.option">本人创建 — 仅访问自己创建的数据</option>
+                    </select>
+                    <p id="rbac-role-scope-hint" class="rbac-field-hint" data-i18n="rbac.scopeHint">资源范围与操作权限共同决定最终访问能力。</p>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="rbac.permissions">权限</label>
+                    <div class="rbac-permission-tools">
+                        <input id="rbac-permission-search" class="form-input" type="search" placeholder="搜索权限，例如 project:read" data-i18n="rbac.searchPermissions" data-i18n-attr="placeholder" oninput="filterRbacPermissions(this.value)">
+                        <button class="btn-secondary btn-small" type="button" onclick="selectVisibleRbacPermissions(true)" data-i18n="rbac.selectVisible">选择可见</button>
+                        <button class="btn-secondary btn-small" type="button" onclick="selectVisibleRbacPermissions(false)" data-i18n="rbac.clearVisible">清空可见</button>
+                    </div>
+                    <div id="rbac-permission-checkboxes" class="rbac-permission-groups"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" type="button" onclick="closeRbacRoleModal()" data-i18n="common.cancel">取消</button>
+                <button class="btn-primary" data-require-permission="rbac:write" id="rbac-role-save-btn" type="button" onclick="saveRbacRole()" data-i18n="common.save">保存</button>
+            </div>
+        </div>
+    </div>
+{{end}}

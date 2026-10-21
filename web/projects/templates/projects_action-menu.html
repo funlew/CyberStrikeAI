@@ -1,0 +1,17 @@
+{{define "projects/action-menu"}}
+<div id="projects-list-action-menu" class="context-menu" style="display: none;" role="menu">
+        <div id="projects-list-menu-edit" class="context-menu-item" data-require-permission="project:write" onclick="editProjectFromListMenu()">
+            <span id="projects-list-menu-edit-text"></span>
+        </div>
+        <div id="projects-list-menu-pin" class="context-menu-item" data-require-permission="project:write" onclick="toggleProjectPinnedFromListMenu()">
+            <span id="projects-list-menu-pin-text"></span>
+        </div>
+        <div id="projects-list-menu-archive" class="context-menu-item" data-require-permission="project:write" onclick="toggleProjectArchiveFromListMenu()">
+            <span id="projects-list-menu-archive-text"></span>
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item context-menu-item-danger" data-require-permission="project:delete" onclick="deleteProjectFromListMenu()">
+            <span id="projects-list-menu-delete-text"></span>
+        </div>
+    </div>
+{{end}}

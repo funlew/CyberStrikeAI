@@ -1,0 +1,46 @@
+{{define "skills/management"}}
+<div id="page-skills-management" class="page skills-management-page">
+                    <div class="page-header">
+                        <h2 data-i18n="skills.title">Skills管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" onclick="refreshSkills()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-primary" data-require-permission="skills:write" onclick="showAddSkillModal()" data-i18n="skills.createSkill">创建Skill</button>
+                        </div>
+                    </div>
+                    <div class="page-content page-content-with-pagination">
+                        <div class="skills-overview" id="skills-management-stats">
+                            <div class="skills-overview-card skills-overview-card-primary">
+                                <span class="skills-overview-label" data-i18n="skillsPage.overviewTotal">Skills</span>
+                                <strong class="skill-stat-value">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="skillsPage.overviewCurrent">当前页</span>
+                                <strong id="skills-current-count">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="skillsPage.overviewFiles">文件</span>
+                                <strong id="skills-file-count">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="skillsPage.overviewScripts">脚本</span>
+                                <strong id="skills-script-count">0</strong>
+                            </div>
+                        </div>
+                        <div class="skills-controls">
+                            <div class="skills-search-box">
+                                <input type="text" id="skills-search" data-i18n="skillsPage.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索Skills..." oninput="handleSkillsSearchInput()" onkeydown="if(event.key==='Enter') searchSkills()" />
+                                <button class="skills-search-clear" id="skills-search-clear" onclick="clearSkillsSearch()" style="display: none;" data-i18n="common.clearSearch" data-i18n-attr="title" title="清除搜索">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="skills-list" class="skills-grid">
+                            <div class="loading-spinner" data-i18n="skillsPage.loading">加载中...</div>
+                        </div>
+                        <div id="skills-pagination" class="pagination-container pagination-fixed"></div>
+                    </div>
+                </div>
+{{end}}

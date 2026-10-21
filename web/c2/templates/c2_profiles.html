@@ -1,0 +1,13 @@
+{{define "c2/profiles"}}
+<div id="page-c2-profiles" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="c2.profiles.title">流量伪装</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-primary" data-require-permission="c2:write" onclick="C2.showCreateProfileModal()" data-i18n="c2.profiles.createBtn">+ 创建 Profile</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div id="c2-profile-list" class="c2-profile-list"></div>
+                    </div>
+                </div>
+{{end}}

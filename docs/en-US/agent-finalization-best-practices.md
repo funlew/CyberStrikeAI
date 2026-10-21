@@ -147,8 +147,8 @@ The project has an explicit final gate:
 - [internal/agentfinalizer/decision.go](../../internal/agentfinalizer/decision.go) is the single final-response decision contract.
 - [internal/handler/finalization_helpers.go](../../internal/handler/finalization_helpers.go) writes decisions to `process_details` and calls `UpdateAssistantMessageFinalize` only when `Finalizable=true`.
 - [internal/handler/eino_single_agent.go](../../internal/handler/eino_single_agent.go), [internal/handler/multi_agent.go](../../internal/handler/multi_agent.go), [internal/handler/workflow_integration.go](../../internal/handler/workflow_integration.go), and [internal/handler/batch_queue_executor.go](../../internal/handler/batch_queue_executor.go) invoke the finalizer at completion.
-- [web/static/js/monitor.js](../../web/static/js/monitor.js) treats a `response` as final only when `data.finalized === true`. Nonfinalized text is shown as a failed finalization check.
-- [web/static/js/webshell.js](../../web/static/js/webshell.js) marks streaming text as candidate output and switches to completed only on `response(finalized=true)`.
+- [web/mcp/static/js/monitor.js](../../web/mcp/static/js/monitor.js) treats a `response` as final only when `data.finalized === true`. Nonfinalized text is shown as a failed finalization check.
+- [web/webshell/static/js/webshell.js](../../web/webshell/static/js/webshell.js) marks streaming text as candidate output and switches to completed only on `response(finalized=true)`.
 - [internal/agentfinalizer/decision_test.go](../../internal/agentfinalizer/decision_test.go) covers pending tools, HITL, empty output, missing required execution evidence, failed evidence that cannot justify finalization, and completed evidence that can.
 - [internal/handler/finalization_auto_continue.go](../../internal/handler/finalization_auto_continue.go) automatically continues up to two segments when completed execution evidence is missing. It restores existing model traces without injecting new user/system text.
 
@@ -232,7 +232,7 @@ sendEvent("response", decision.FinalText, finalizationResponsePayload(decision, 
 
 ### 4. The frontend trusts only `finalized=true`
 
-The `case 'response'` branch in [web/static/js/monitor.js](../../web/static/js/monitor.js) enforces the check:
+The `case 'response'` branch in [web/mcp/static/js/monitor.js](../../web/mcp/static/js/monitor.js) enforces the check:
 
 ```js
 const responseFinalized = isFinalizedResponseData(responseData);

@@ -6,11 +6,14 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"html/template"
+	"io/fs"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -621,7 +624,7 @@ func New(cfg *config.Config, log *logger.Logger, configPath string) (*App, error
 	}, configHandler.UpdateSource, configHandler.SetUpdateSource)
 
 	// 设置路由（使用 App 实例以便动态获取 handler）
-	setupRoutes(
+	if err := setupRoutes(
 		router,
 		authHandler,
 		agentHandler,
@@ -653,7 +656,9 @@ func New(cfg *config.Config, log *logger.Logger, configPath string) (*App, error
 		authManager,
 		openAPIHandler,
 		updateHandler,
-	)
+	); err != nil {
+		return nil, err
+	}
 
 	return app, nil
 
@@ -959,7 +964,7 @@ func setupRoutes(
 	authManager *security.AuthManager,
 	openAPIHandler *handler.OpenAPIHandler,
 	updateHandler *handler.UpdateHandler,
-) {
+) error {
 	// API路由
 	api := router.Group("/api")
 
@@ -1128,6 +1133,12 @@ func setupRoutes(
 		protected.POST("/tool-guard/test", configHandler.TestToolGuard)
 		protected.GET("/config/tools", configHandler.GetTools)
 		protected.GET("/config/tools/:name/schema", configHandler.GetToolSchema)
+		// 工具状态与工具管理（YAML CRUD，写后热重载）
+		protected.GET("/config/tool-stats", configHandler.GetToolsStats)
+		protected.GET("/config/tools/:name", configHandler.GetToolYAML)
+		protected.POST("/config/tools", configHandler.CreateToolYAML)
+		protected.PUT("/config/tools/:name", configHandler.UpdateToolYAML)
+		protected.DELETE("/config/tools/:name", configHandler.DeleteToolYAML)
 		protected.PUT("/config", configHandler.UpdateConfig)
 		protected.POST("/config/apply", configHandler.ApplyConfig)
 		protected.POST("/config/test-openai", configHandler.TestOpenAI)
@@ -1484,9 +1495,10 @@ func setupRoutes(
 		c.HTML(http.StatusOK, "api-docs.html", nil)
 	})
 
-	// 静态文件
-	router.Static("/static", "./web/static")
-	router.LoadHTMLGlob("web/templates/*")
+	// 静态文件与模板（按 web/<module>/{static,templates} 分模块组织）
+	if err := registerWebAssets(router, "web"); err != nil {
+		return err
+	}
 
 	// 前端页面
 	router.GET("/", func(c *gin.Context) {
@@ -1496,6 +1508,69 @@ func setupRoutes(
 		}
 		c.HTML(http.StatusOK, "index.html", gin.H{"Version": version})
 	})
+
+	return nil
+}
+
+// registerWebAssets 按模块挂载静态资源（/static/<module>/...），并加载全部模块模板。
+// 模块以 web/ 下的目录为唯一依据：新增模块目录时无需再维护单独的清单。
+func registerWebAssets(router *gin.Engine, webRoot string) error {
+	entries, err := os.ReadDir(webRoot)
+	if err != nil {
+		return fmt.Errorf("扫描前端模块目录失败: %w", err)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		staticDir := filepath.Join(webRoot, entry.Name(), "static")
+		info, err := os.Stat(staticDir)
+		if err != nil || !info.IsDir() {
+			continue
+		}
+		router.Static("/static/"+entry.Name(), staticDir)
+	}
+
+	templates, err := loadWebTemplates(webRoot, router.FuncMap)
+	if err != nil {
+		return err
+	}
+	router.SetHTMLTemplate(templates)
+	return nil
+}
+
+// loadWebTemplates 递归加载 web/<module>/templates 下的全部模板文件。
+// 模板之间通过 {{template "<module>/<part>" .}} 组合，入口模板为 index.html 与 api-docs.html。
+func loadWebTemplates(webRoot string, funcMap template.FuncMap) (*template.Template, error) {
+	var files []string
+	err := filepath.WalkDir(webRoot, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			if entry.Name() == "static" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".html" || filepath.Base(filepath.Dir(path)) != "templates" {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("扫描前端模板失败: %w", err)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("未找到前端模板: %s", webRoot)
+	}
+	sort.Strings(files)
+	tmpl, err := template.New("").Funcs(funcMap).ParseFiles(files...)
+	if err != nil {
+		return nil, fmt.Errorf("解析前端模板失败: %w", err)
+	}
+	return tmpl, nil
 }
 
 // registerWebshellTools 注册 WebShell 相关 MCP 工具，供 AI 助手在指定连接上执行命令与文件操作

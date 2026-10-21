@@ -1,0 +1,188 @@
+{{define "workflows/modals"}}
+<div id="workflow-meta-modal" class="modal" style="display: none;">
+        <div class="modal-content workflow-meta-modal-content">
+            <div class="modal-header workflow-meta-modal-header">
+                <h2 data-i18n="workflows.metaModalTitle">工作流信息</h2>
+                <span class="modal-close" onclick="closeWorkflowMetaModal()">&times;</span>
+            </div>
+            <div class="modal-body workflow-meta-modal-body">
+                <div class="form-group workflow-meta-field">
+                    <label for="workflow-name"><span data-i18n="workflows.metaName">名称</span> <span class="form-required">*</span></label>
+                    <input type="text" id="workflow-name" class="form-input" data-i18n="workflows.namePlaceholder" data-i18n-attr="placeholder" placeholder="基础 Web 扫描" autocomplete="off">
+                </div>
+                <div class="form-group workflow-meta-field workflow-meta-id-group" id="workflow-meta-id-group">
+                    <label for="workflow-id"><span data-i18n="workflows.metaId">ID</span> <span class="form-required">*</span></label>
+                    <div id="workflow-id-locked" class="workflow-meta-id-locked" hidden>
+                        <code id="workflow-id-display"></code>
+                    </div>
+                    <input type="text" id="workflow-id" class="form-input workflow-meta-id-input" placeholder="web-scan-basic" autocomplete="off">
+                    <small class="workflow-meta-id-hint form-hint" data-i18n="workflows.metaIdHint">创建后不可修改，用于 API 与角色绑定</small>
+                </div>
+                <div class="form-group workflow-meta-field">
+                    <label for="workflow-description" data-i18n="workflows.metaDescription">描述</label>
+                    <input type="text" id="workflow-description" class="form-input" data-i18n="workflows.descriptionPlaceholder" data-i18n-attr="placeholder" placeholder="可选" autocomplete="off">
+                </div>
+                <div class="workflow-meta-enable-row">
+                    <span class="workflow-meta-enable-label" data-i18n="workflows.metaEnabled">启用</span>
+                    <label class="workflow-switch workflow-switch--modal" data-i18n="workflows.metaEnabledHint" data-i18n-attr="title" title="禁用后无法被角色自动触发">
+                        <input type="checkbox" id="workflow-enabled" checked>
+                        <span class="workflow-switch-slider" aria-hidden="true"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer workflow-meta-modal-footer">
+                <button type="button" class="btn-secondary btn-small" onclick="closeWorkflowMetaModal()" data-i18n="common.cancel">取消</button>
+                <button type="button" class="btn-primary btn-small" onclick="applyWorkflowMetaModal()" data-i18n="common.confirm">确认</button>
+            </div>
+        </div>
+    </div>
+    <div id="workflow-dry-run-modal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="workflow-dry-run-modal-title" onclick="if(event.target===this)closeWorkflowDryRunModal()" onkeydown="if(event.key==='Escape')closeWorkflowDryRunModal()">
+        <form class="modal-content workflow-dry-run-modal-content" onsubmit="event.preventDefault(); submitWorkflowDryRun()" onclick="event.stopPropagation()">
+            <div class="modal-header workflow-dry-run-modal-header">
+                <div class="workflow-dry-run-modal-title-group">
+                    <span class="workflow-dry-run-modal-icon" aria-hidden="true">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.4v13.2a1 1 0 0 0 1.55.84l9.2-6.6a1 1 0 0 0 0-1.68l-9.2-6.6A1 1 0 0 0 8 5.4Z"/></svg>
+                    </span>
+                    <h2 id="workflow-dry-run-modal-title" data-i18n="workflows.dryRun">试运行</h2>
+                </div>
+                <button type="button" class="modal-close" onclick="closeWorkflowDryRunModal()" data-i18n="common.close" data-i18n-attr="aria-label" data-i18n-skip-text="true" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body workflow-dry-run-modal-body">
+                <div class="form-group workflow-dry-run-modal-field">
+                    <label for="workflow-dry-run-message" data-i18n="workflows.dryRunPrompt">输入试运行消息</label>
+                    <input type="text" id="workflow-dry-run-message" class="form-input" value="ping" autocomplete="off" spellcheck="false">
+                    <small class="form-hint" data-i18n="workflows.dryRunPromptHint">该消息将作为开始节点的 message 输入。</small>
+                </div>
+            </div>
+            <div class="modal-footer workflow-dry-run-modal-footer">
+                <button type="button" class="btn-secondary btn-small" onclick="closeWorkflowDryRunModal()" data-i18n="common.cancel">取消</button>
+                <button type="submit" class="btn-primary btn-small" data-i18n="workflows.dryRun">试运行</button>
+            </div>
+        </form>
+    </div>
+    <div id="workflow-ai-modal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="workflow-ai-modal-title" onclick="if(event.target===this)closeWorkflowAiModal()" onkeydown="if(event.key==='Escape')closeWorkflowAiModal()">
+        <form class="modal-content workflow-ai-modal-content" onsubmit="event.preventDefault(); generateWorkflowFromNaturalLanguage()" onclick="event.stopPropagation()">
+            <div class="modal-header workflow-ai-modal-header">
+                <div>
+                    <h2 id="workflow-ai-modal-title" data-i18n="workflows.ai.title">用自然语言创建工作流</h2>
+                    <p class="workflow-ai-subtitle" data-i18n="workflows.ai.subtitle">AI 会生成可编辑草稿，不会自动保存或运行。</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeWorkflowAiModal()" data-i18n="common.close" data-i18n-attr="aria-label" data-i18n-skip-text="true" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body workflow-ai-modal-body">
+                <div class="form-group workflow-ai-prompt-field">
+                    <label for="workflow-ai-prompt" data-i18n="workflows.ai.promptLabel">工作流需求</label>
+                    <textarea id="workflow-ai-prompt" class="form-input" rows="5" data-i18n="workflows.ai.promptPlaceholder" data-i18n-attr="placeholder" placeholder="例如：持续监控一个域名的子域名、证书和暴露页面，发现新增资产后生成报告"></textarea>
+                </div>
+                <div class="workflow-ai-examples" aria-label="示例需求" data-i18n="workflows.ai.examplesLabel" data-i18n-attr="aria-label">
+                    <button type="button" class="btn-secondary btn-small" onclick="useWorkflowAiExample('domainMonitor')" data-i18n="workflows.ai.exampleDomain">域名监控</button>
+                    <button type="button" class="btn-secondary btn-small" onclick="useWorkflowAiExample('reportReview')" data-i18n="workflows.ai.exampleReport">报告审批</button>
+                    <button type="button" class="btn-secondary btn-small" onclick="useWorkflowAiExample('assetTriage')" data-i18n="workflows.ai.exampleTriage">资产研判</button>
+                </div>
+                <div class="workflow-ai-options">
+                    <label><input type="checkbox" id="workflow-ai-include-objective" checked> <span data-i18n="workflows.ai.includeObjective">同时生成 objective 配置</span></label>
+                    <label><input type="checkbox" id="workflow-ai-allow-schedule"> <span data-i18n="workflows.ai.allowSchedule">允许生成定时触发建议</span></label>
+                    <label><input type="checkbox" id="workflow-ai-allow-high-risk"> <span data-i18n="workflows.ai.allowHighRisk">允许包含高风险节点草稿</span></label>
+                </div>
+                <div id="workflow-ai-progress" class="workflow-ai-progress" hidden aria-live="polite"></div>
+                <div id="workflow-ai-result" class="workflow-ai-result" aria-live="polite"></div>
+            </div>
+            <div class="modal-footer workflow-ai-modal-footer">
+                <button type="button" class="btn-secondary btn-small" onclick="closeWorkflowAiModal()" data-i18n="common.cancel">取消</button>
+                <button id="workflow-ai-apply-btn" type="button" class="btn-secondary btn-small" onclick="applyWorkflowAiDraft()" disabled data-i18n="workflows.ai.apply">渲染到画布</button>
+                <button id="workflow-ai-generate-btn" type="submit" class="btn-primary btn-small" data-i18n="workflows.ai.generate">生成草稿</button>
+            </div>
+        </form>
+    </div>
+    <div id="workflow-package-import-modal" class="modal workflow-package-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="workflow-package-import-title">
+        <div class="modal-content workflow-package-modal-content">
+            <div class="modal-header workflow-package-modal-header">
+                <div class="workflow-package-title-group">
+                    <span class="workflow-package-title-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 19h14"/></svg>
+                    </span>
+                    <div>
+                        <div class="workflow-package-title-line">
+                            <h2 id="workflow-package-import-title" data-i18n="workflows.package.title">导入本地包</h2>
+                            <span class="workflow-package-safe-badge" data-i18n="workflows.package.safeBadge">安全预检</span>
+                        </div>
+                        <p class="workflow-package-subtitle" data-i18n="workflows.package.preflightHint">先检查包内容与冲突，再由你确认是否导入</p>
+                    </div>
+                </div>
+                <span class="modal-close" onclick="closeWorkflowPackageImportModal()" aria-label="关闭" data-i18n="common.close" data-i18n-attr="aria-label">&times;</span>
+            </div>
+            <div class="workflow-package-steps" aria-label="导入步骤" data-i18n="workflows.package.stepsLabel" data-i18n-attr="aria-label">
+                <span class="is-active" id="workflow-package-step-inspection"><b>1</b><span><strong data-i18n="workflows.package.stepInspection">上传与预检</strong><small data-i18n="workflows.package.stepInspectionHint">校验格式、内容与版本</small></span></span>
+                <span id="workflow-package-step-import"><b>2</b><span><strong data-i18n="workflows.package.stepImport">处理冲突与导入</strong><small data-i18n="workflows.package.stepImportHint">确认处理方式并完成导入</small></span></span>
+            </div>
+            <div class="modal-body workflow-package-modal-body">
+                <section class="workflow-package-pane workflow-package-pane--inspection">
+                    <div class="workflow-package-pane-heading">
+                        <div>
+                            <span class="workflow-package-eyebrow" data-i18n="workflows.package.packageEyebrow">本地工作流包</span>
+                            <h3 data-i18n="workflows.package.packageTitle">选择需要导入的文件</h3>
+                        </div>
+                        <span class="workflow-package-format-pill">.CSAPKG.ZIP</span>
+                    </div>
+                    <input id="workflow-package-file-input" type="file" accept=".csapkg.zip,application/zip" hidden onchange="onWorkflowPackageFileSelected()">
+                    <div id="workflow-package-dropzone" class="workflow-package-dropzone" role="button" tabindex="0" aria-controls="workflow-package-file-input" aria-describedby="workflow-package-file-hint" onclick="openWorkflowPackageFilePicker()" onkeydown="onWorkflowPackageDropzoneKeydown(event)" ondragenter="onWorkflowPackageDragEnter(event)" ondragover="onWorkflowPackageDragOver(event)" ondragleave="onWorkflowPackageDragLeave(event)" ondrop="onWorkflowPackageDrop(event)">
+                        <span class="workflow-package-upload-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+                        </span>
+                        <span class="workflow-package-dropzone-copy">
+                            <strong data-i18n="workflows.package.dropTitle">拖拽本地包到这里</strong>
+                            <span><span data-i18n="workflows.package.dropOr">或</span> <span class="workflow-package-browse" data-i18n="workflows.package.selectFile">浏览文件</span></span>
+                        </span>
+                    </div>
+                    <div id="workflow-package-selected-file" class="workflow-package-selected-file" hidden>
+                        <span class="workflow-package-file-badge" aria-hidden="true">ZIP</span>
+                        <span class="workflow-package-file-details">
+                            <strong id="workflow-package-file-name" class="workflow-package-file-name"></strong>
+                            <small id="workflow-package-file-size"></small>
+                        </span>
+                        <button type="button" class="workflow-package-file-remove" onclick="clearWorkflowPackageFile(event)" aria-label="移除文件" title="移除文件" data-i18n="workflows.package.removeFile" data-i18n-attr="aria-label,title" data-i18n-skip-text="true">&times;</button>
+                    </div>
+                    <p id="workflow-package-file-hint" class="workflow-package-file-hint" data-i18n="workflows.package.fileHint">仅支持单个 .csapkg.zip，文件不得超过 10 MiB。</p>
+                    <button id="workflow-package-inspect-btn" type="button" class="btn-primary workflow-package-inspect-btn" onclick="inspectWorkflowPackage()" disabled data-i18n="workflows.package.inspect">上传并预检</button>
+                    <div id="workflow-package-inspection" class="workflow-package-summary" aria-live="polite"></div>
+                </section>
+                <section class="workflow-package-pane workflow-package-pane--resolution">
+                    <div class="workflow-package-pane-heading">
+                        <div>
+                            <span class="workflow-package-eyebrow" data-i18n="workflows.package.decisionEyebrow">导入策略</span>
+                            <h3 data-i18n="workflows.package.resolutionTitle">处理方式</h3>
+                        </div>
+                        <span class="workflow-package-decision-status" data-i18n="workflows.package.pending">待预检</span>
+                    </div>
+                    <div id="workflow-package-resolution" class="workflow-package-resolution" aria-live="polite"></div>
+                </section>
+            </div>
+            <div class="modal-footer workflow-package-modal-footer">
+                <div class="workflow-package-footer-note">
+                    <span aria-hidden="true">✓</span>
+                    <span data-i18n="workflows.package.footerNote">导入前不会改动现有工作流</span>
+                </div>
+                <div class="workflow-package-footer-actions">
+                    <button type="button" class="btn-secondary" onclick="closeWorkflowPackageImportModal()" data-i18n="common.cancel">取消</button>
+                    <button id="workflow-package-submit-btn" type="button" class="btn-primary" onclick="submitWorkflowPackageImport()" disabled data-i18n="workflows.package.confirmImport">确认导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="workflow-package-overwrite-modal" class="modal workflow-package-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="workflow-package-overwrite-title">
+        <div class="modal-content workflow-package-overwrite-content">
+            <div class="modal-header">
+                <h2 id="workflow-package-overwrite-title" data-i18n="workflows.package.overwriteTitle">确认覆盖本地工作流？</h2>
+                <span class="modal-close" onclick="closeWorkflowPackageOverwriteModal()" aria-label="关闭" data-i18n="common.close" data-i18n-attr="aria-label">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="workflows.package.overwriteWarning">覆盖将替换名称、描述、图定义和启用状态。本期不提供回滚。</p>
+                <label class="workflow-package-confirm-check"><input id="workflow-package-overwrite-confirm" type="checkbox" onchange="updateWorkflowPackageOverwriteConfirmation()"> <span data-i18n="workflows.package.overwriteCheck">我已确认覆盖当前本地工作流</span></label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeWorkflowPackageOverwriteModal()" data-i18n="common.cancel">取消</button>
+                <button id="workflow-package-overwrite-submit-btn" type="button" class="btn-primary" onclick="confirmWorkflowPackageOverwrite()" disabled data-i18n="workflows.package.overwriteConfirm">确认覆盖并导入</button>
+            </div>
+        </div>
+    </div>
+{{end}}

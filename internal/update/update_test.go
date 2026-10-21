@@ -327,7 +327,7 @@ func TestRollbackRefusesWhenHeadMoved(t *testing.T) {
 func TestProtectedCoversOperatorDataAndNotCode(t *testing.T) {
 	yes := []string{"roles/CTF.yaml", "skills/x/SKILL.md", "tools/semgrep.yaml", "agents/a.md", "bundles/pack/bundle.yaml",
 		"knowledge_base/note.md", "data/conversations.db", "log/server.log", "config.yaml", ".env", "venv/bin/python"}
-	no := []string{"internal/handler/plugin.go", "web/static/js/plugins.js", "cmd/server/main.go", "Makefile", "docs/zh-CN/c2.md"}
+	no := []string{"internal/handler/plugin.go", "web/core/static/js/plugins.js", "cmd/server/main.go", "Makefile", "docs/zh-CN/c2.md"}
 	for _, p := range yes {
 		if !Protected(p) {
 			t.Errorf("%s must be protected from an update", p)

@@ -145,8 +145,8 @@ Do not produce a final answer until verification is complete.
 - [internal/agentfinalizer/decision.go](../../internal/agentfinalizer/decision.go) 是唯一的最终回复决策契约。
 - [internal/handler/finalization_helpers.go](../../internal/handler/finalization_helpers.go) 负责把决策结果写入 `process_details`，并且只有 `Finalizable=true` 时才调用 `UpdateAssistantMessageFinalize`。
 - [internal/handler/eino_single_agent.go](../../internal/handler/eino_single_agent.go)、[internal/handler/multi_agent.go](../../internal/handler/multi_agent.go)、[internal/handler/workflow_integration.go](../../internal/handler/workflow_integration.go)、[internal/handler/batch_queue_executor.go](../../internal/handler/batch_queue_executor.go) 均已在收尾处接入 finalizer。
-- [web/static/js/monitor.js](../../web/static/js/monitor.js) 只把 `data.finalized === true` 的 `response` 当最终回复；未最终化文本会显示为最终回复检查未通过。
-- [web/static/js/webshell.js](../../web/static/js/webshell.js) 将流式正文标记为候选输出，只有 `response(finalized=true)` 才切换为完成态。
+- [web/mcp/static/js/monitor.js](../../web/mcp/static/js/monitor.js) 只把 `data.finalized === true` 的 `response` 当最终回复；未最终化文本会显示为最终回复检查未通过。
+- [web/webshell/static/js/webshell.js](../../web/webshell/static/js/webshell.js) 将流式正文标记为候选输出，只有 `response(finalized=true)` 才切换为完成态。
 - [internal/agentfinalizer/decision_test.go](../../internal/agentfinalizer/decision_test.go) 覆盖 pending tool、HITL、空输出、证据策略要求但缺执行证据、失败证据不能支撑最终化、完成态证据可 final 等回归场景。
 - [internal/handler/finalization_auto_continue.go](../../internal/handler/finalization_auto_continue.go) 在缺 completed 执行证据时最多自动续跑 2 段；续跑只恢复已有模型轨迹，不向 agent 注入新的 user/system 文案。
 
@@ -230,7 +230,7 @@ sendEvent("response", decision.FinalText, finalizationResponsePayload(decision, 
 
 ### 4. 前端只信 `finalized=true`
 
-在 [web/static/js/monitor.js](../../web/static/js/monitor.js) 的 `case 'response'` 中执行硬判断：
+在 [web/mcp/static/js/monitor.js](../../web/mcp/static/js/monitor.js) 的 `case 'response'` 中执行硬判断：
 
 ```js
 const responseFinalized = isFinalizedResponseData(responseData);

@@ -1,0 +1,28 @@
+{{define "knowledge/modals"}}
+<div id="knowledge-item-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 id="knowledge-item-modal-title">添加知识</h2>
+                <span class="modal-close" onclick="closeKnowledgeItemModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="knowledge-item-category">分类（风险类型）<span style="color: red;">*</span></label>
+                    <input type="text" id="knowledge-item-category" placeholder="例如：SQL注入" required />
+                </div>
+                <div class="form-group">
+                    <label for="knowledge-item-title">标题<span style="color: red;">*</span></label>
+                    <input type="text" id="knowledge-item-title" placeholder="知识项标题" required />
+                </div>
+                <div class="form-group">
+                    <label for="knowledge-item-content">内容（Markdown格式）<span style="color: red;">*</span></label>
+                    <textarea id="knowledge-item-content" rows="20" placeholder="输入知识内容，支持Markdown格式..." style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 0.875rem; line-height: 1.5;" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeKnowledgeItemModal()">取消</button>
+                <button class="btn-primary" data-require-permission="knowledge:write" onclick="saveKnowledgeItem()">保存</button>
+            </div>
+        </div>
+    </div>
+{{end}}

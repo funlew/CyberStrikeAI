@@ -1,0 +1,156 @@
+{{define "assets/modals"}}
+<div id="asset-import-modal" class="modal asset-import-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="asset-import-title" onclick="if(event.target===this)closeAssetImport()">
+                    <div class="modal-content asset-import-content" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <div><h2 id="asset-import-title" data-i18n="assets.bulkImportTitle">批量导入资产</h2><p class="asset-page-subtitle" data-i18n="assets.bulkImportSubtitle">下载模板填写后上传，提交前会先校验并预览数据</p></div>
+                            <button type="button" class="modal-close" onclick="closeAssetImport()" data-i18n="common.close" data-i18n-attr="aria-label" aria-label="关闭"></button>
+                        </div>
+                        <div class="modal-body asset-import-body">
+                            <section class="asset-import-step">
+                                <div class="asset-import-step-heading"><span>1</span><div><strong data-i18n="assets.downloadTemplate">下载模板</strong><small data-i18n="assets.downloadTemplateHint">推荐 XLSX；CSV 适合从其他系统快速导出</small></div></div>
+                                <div class="asset-import-template-actions">
+                                    <button class="btn-secondary" type="button" onclick="downloadAssetTemplate('xlsx')" data-i18n="assets.downloadXlsx">下载 XLSX 模板</button>
+                                    <button class="btn-secondary" type="button" onclick="downloadAssetTemplate('csv')" data-i18n="assets.downloadCsv">下载 CSV 模板</button>
+                                </div>
+                            </section>
+                            <section class="asset-import-step">
+                                <div class="asset-import-step-heading"><span>2</span><div><strong data-i18n="assets.uploadFile">上传文件</strong><small data-i18n="assets.uploadFileHint">支持 .xlsx 和 .csv，最多 100000 行、100 MB</small></div></div>
+                                <input id="asset-import-file" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="handleAssetImportFile(this.files && this.files[0])">
+                                <button id="asset-import-dropzone" class="asset-import-dropzone" type="button" onclick="document.getElementById('asset-import-file').click()">
+                                    <span class="asset-import-dropzone-icon" aria-hidden="true">⇧</span>
+                                    <strong id="asset-import-dropzone-title" data-i18n="assets.chooseOrDropFile">选择文件，或拖拽到此处</strong>
+                                    <small id="asset-import-file-name" data-i18n="assets.fileNotSelected">尚未选择文件</small>
+                                </button>
+                            </section>
+                            <section id="asset-import-preview-section" class="asset-import-step asset-import-preview-section" hidden>
+                                <div class="asset-import-step-heading"><span>3</span><div><strong data-i18n="assets.dataPreview">数据预览</strong><small id="asset-import-summary"></small></div></div>
+                                <div class="asset-import-preview-wrap">
+                                    <table class="asset-import-preview-table">
+                                        <thead><tr><th data-i18n="assets.rowNumber">行号</th><th data-i18n="assets.target">目标</th><th data-i18n="assets.project">所属项目</th><th data-i18n="assets.status">状态</th><th data-i18n="assets.validationResult">校验结果</th></tr></thead>
+                                        <tbody id="asset-import-preview-body"></tbody>
+                                    </table>
+                                </div>
+                                <p id="asset-import-preview-note" class="form-hint"></p>
+                            </section>
+                            <div id="asset-import-error" class="asset-form-error" role="alert" hidden></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-secondary" onclick="closeAssetImport()" data-i18n="common.cancel">取消</button>
+                            <button id="asset-import-submit" type="button" class="btn-primary" data-require-permission="asset:write" onclick="submitAssetImport()" disabled data-i18n="assets.importValidRows">导入有效数据</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="asset-project-modal" class="modal asset-project-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="asset-project-title" onclick="if(event.target===this)closeAssetProjectModal()">
+                    <form class="modal-content asset-project-content" onsubmit="event.preventDefault();submitAssetProjectBinding()" onclick="event.stopPropagation()">
+                        <div class="modal-header"><div><h2 id="asset-project-title" data-i18n="assets.bindProjectTitle">绑定项目</h2><p id="asset-project-subtitle" class="asset-page-subtitle"></p></div><button type="button" class="modal-close" onclick="closeAssetProjectModal()" data-i18n="common.close" data-i18n-attr="aria-label" aria-label="关闭"></button></div>
+                        <div class="modal-body">
+                            <label class="asset-editor-field" for="asset-batch-project"><span data-i18n="assets.project">所属项目</span><select id="asset-batch-project"><option value="" disabled hidden data-i18n="assets.chooseProject">请选择项目</option></select></label>
+                            <p class="form-hint" data-i18n="assets.bindProjectHint">所选资产将统一绑定到该项目。</p>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeAssetProjectModal()" data-i18n="common.cancel">取消</button><button id="asset-project-submit" type="submit" class="btn-primary" data-require-permission="asset:write" data-i18n="assets.confirmBinding">确认绑定</button></div>
+                    </form>
+                </div>
+
+                <div id="asset-bulk-edit-modal" class="modal asset-project-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="asset-bulk-edit-title" onclick="if(event.target===this)closeAssetBulkEdit()">
+                    <form class="modal-content asset-bulk-edit-content" onsubmit="event.preventDefault();submitAssetBulkEdit()" onclick="event.stopPropagation()">
+                        <div class="modal-header"><div><h2 id="asset-bulk-edit-title">批量编辑资产</h2><p id="asset-bulk-edit-subtitle" class="asset-page-subtitle"></p></div><button type="button" class="modal-close" onclick="closeAssetBulkEdit()" aria-label="关闭"></button></div>
+                        <div class="modal-body asset-editor-grid">
+                            <label class="asset-editor-field"><span>状态（留空不修改）</span><select id="asset-bulk-status"><option value="">不修改</option><option value="active">活跃</option><option value="inactive">停用</option></select></label>
+                            <label class="asset-editor-field"><span>负责人</span><input id="asset-bulk-responsible" type="text" placeholder="留空不修改"></label>
+                            <label class="asset-editor-field"><span>部门</span><input id="asset-bulk-department" type="text" placeholder="留空不修改"></label>
+                            <label class="asset-editor-field"><span>业务系统</span><input id="asset-bulk-business" type="text" placeholder="留空不修改"></label>
+                            <label class="asset-editor-field"><span>环境（留空不修改）</span><select id="asset-bulk-environment"><option value="">不修改</option><option value="production">生产</option><option value="staging">预发布</option><option value="testing">测试</option><option value="development">开发</option><option value="other">其他</option></select></label>
+                            <label class="asset-editor-field"><span>重要性（留空不修改）</span><select id="asset-bulk-criticality"><option value="">不修改</option><option value="critical">核心</option><option value="high">重要</option><option value="medium">一般</option><option value="low">低</option></select></label>
+                            <label class="asset-editor-field"><span>增加标签</span><input id="asset-bulk-add-tags" type="text" placeholder="逗号分隔"></label>
+                            <label class="asset-editor-field"><span>移除标签</span><input id="asset-bulk-remove-tags" type="text" placeholder="逗号分隔"></label>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeAssetBulkEdit()">取消</button><button id="asset-bulk-edit-submit" type="submit" class="btn-primary" data-require-permission="asset:write">应用修改</button></div>
+                    </form>
+                </div>
+
+                <div id="asset-scan-modal" class="modal asset-scan-modal" style="display:none" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAssetScanModal()">
+                    <div class="modal-content asset-scan-content" onclick="event.stopPropagation()">
+                        <div class="modal-header"><div><h2 id="asset-scan-title" data-i18n="assets.scanTitle">扫描资产</h2><p id="asset-scan-subtitle" class="asset-page-subtitle"></p></div><span class="modal-close" onclick="closeAssetScanModal()">&times;</span></div>
+                        <div class="modal-body">
+                            <div id="asset-scan-targets" class="asset-scan-targets"></div>
+                            <label class="asset-scan-prompt-label" for="asset-scan-prompt" data-i18n="assets.userPrompt">用户提示词</label>
+                            <textarea id="asset-scan-prompt" class="asset-scan-prompt" rows="7"></textarea>
+                            <p id="asset-scan-hint" class="form-hint" data-i18n="assets.promptHint">可使用 &#123;&#123;asset_id&#125;&#125;、&#123;&#123;target&#125;&#125;、&#123;&#123;host&#125;&#125;、&#123;&#123;ip&#125;&#125;、&#123;&#123;domain&#125;&#125;、&#123;&#123;port&#125;&#125; 占位符；创建任务时会为每个资产生成一条任务。</p>
+                            <label id="asset-scan-execute-wrap" class="checkbox-label"><input id="asset-scan-execute-now" type="checkbox" checked><span data-i18n="assets.executeNow">创建后立即执行</span></label>
+                        </div>
+                        <div class="modal-footer"><button class="btn-secondary" onclick="closeAssetScanModal()" data-i18n="common.cancel">取消</button><button id="asset-scan-submit" class="btn-primary" onclick="submitAssetScan()" data-i18n="assets.confirmSend">确认发送</button></div>
+                    </div>
+                </div>
+
+                <div id="asset-editor-modal" class="modal asset-editor-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="asset-editor-title" onclick="if(event.target===this)closeAssetEditor()">
+                    <form id="asset-editor-form" class="modal-content asset-editor-content" novalidate onsubmit="event.preventDefault();saveAsset()" onclick="event.stopPropagation()">
+                        <div class="modal-header"><div><h2 id="asset-editor-title" data-i18n="assets.addAssetTitle">新增资产</h2><p class="asset-editor-subtitle" data-i18n="assets.editorSubtitle">输入一个目标即可，其余信息可自动解析或稍后补充</p></div><button type="button" class="modal-close" onclick="closeAssetEditor()" data-i18n="common.close" data-i18n-attr="aria-label" aria-label="关闭"></button></div>
+                        <div class="modal-body asset-editor-body">
+                            <input type="hidden" id="asset-edit-id">
+                            <div class="asset-editor-primary">
+                                <label class="asset-editor-field asset-editor-target-field" for="asset-edit-target">
+                                    <span><span data-i18n="assets.assetAddress">资产地址</span><b aria-hidden="true">*</b></span>
+                                    <input id="asset-edit-target" type="text" autocomplete="off" spellcheck="false" placeholder="https://example.com:443、example.com 或 1.1.1.1:443" aria-describedby="asset-edit-target-hint asset-edit-target-error" aria-required="true">
+                                    <small id="asset-edit-target-hint" class="asset-field-hint" data-i18n="assets.assetAddressHint">仅需填写非空目标；可识别的 URL、域名、IP 和端口会自动解析</small>
+                                    <small id="asset-edit-target-error" class="asset-field-error" role="alert" hidden></small>
+                                </label>
+                                <div class="asset-editor-grid asset-editor-primary-grid">
+                                    <label class="asset-editor-field"><span data-i18n="assets.project">所属项目</span><select id="asset-edit-project"><option value="" data-i18n="assets.unboundProject">暂不绑定</option></select></label>
+                                    <label class="asset-editor-field"><span data-i18n="assets.tagsLabel">标签</span><div id="asset-tag-editor" class="asset-tag-editor"><div id="asset-tag-chips" class="asset-tag-chips"></div><input id="asset-edit-tags" type="text" autocomplete="off" data-i18n="assets.tagsPlaceholder" data-i18n-attr="placeholder" placeholder="输入后按回车或逗号"></div><small class="asset-field-hint" data-i18n="assets.tagsHint">用于环境、业务或责任范围分类</small></label>
+                                </div>
+                            </div>
+                            <section id="asset-editor-details" class="asset-editor-details" aria-labelledby="asset-editor-details-title">
+                                <div class="asset-editor-section-group">
+                                    <div class="asset-editor-group-heading"><h3 id="asset-editor-details-title" data-i18n="assets.connectionInfo">连接信息</h3><p data-i18n="assets.connectionInfoHint">由资产地址自动解析，可按需修正</p></div>
+                                    <div class="asset-editor-grid">
+                                        <label class="asset-editor-field asset-editor-wide"><span data-i18n="assets.hostUrl">完整 URL / Host</span><input id="asset-edit-host" type="text" spellcheck="false" placeholder="https://example.com:443"><small id="asset-edit-host-error" class="asset-field-error" role="alert" hidden></small></label>
+                                        <label class="asset-editor-field"><span>IP</span><input id="asset-edit-ip" type="text" spellcheck="false" placeholder="1.1.1.1"><small id="asset-edit-ip-error" class="asset-field-error" role="alert" hidden></small></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.domain">域名</span><input id="asset-edit-domain" type="text" spellcheck="false" placeholder="example.com"><small id="asset-edit-domain-error" class="asset-field-error" role="alert" hidden></small></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.port">端口</span><input id="asset-edit-port" type="number" inputmode="numeric" min="1" max="65535" placeholder="443"><small id="asset-edit-port-error" class="asset-field-error" role="alert" hidden></small></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.protocol">协议</span><input id="asset-edit-protocol" type="text" list="asset-protocol-options" spellcheck="false" placeholder="https"><datalist id="asset-protocol-options"><option value="http"><option value="https"><option value="ssh"><option value="ftp"><option value="smtp"><option value="rdp"><option value="mysql"><option value="postgresql"><option value="redis"><option value="mongodb"></datalist><small id="asset-edit-protocol-error" class="asset-field-error" role="alert" hidden></small></label>
+                                    </div>
+                                </div>
+                                <div class="asset-editor-section-group">
+                                    <div class="asset-editor-group-heading"><h3 data-i18n="assets.fingerprintInfo">识别信息</h3><p data-i18n="assets.fingerprintInfoHint">补充页面与服务指纹，便于检索和识别</p></div>
+                                    <div class="asset-editor-grid">
+                                        <label class="asset-editor-field"><span data-i18n="assets.pageTitle">页面标题</span><input id="asset-edit-title-value" type="text" maxlength="500"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.serverProduct">服务 / 产品</span><input id="asset-edit-server" type="text" maxlength="255" placeholder="nginx"></label>
+                                    </div>
+                                </div>
+                                <div class="asset-editor-section-group">
+                                    <div class="asset-editor-group-heading"><h3 data-i18n="assets.locationAndStatus">地理与状态</h3><p data-i18n="assets.locationAndStatusHint">记录资产归属地区和当前启用状态</p></div>
+                                    <div class="asset-editor-grid">
+                                        <label class="asset-editor-field"><span data-i18n="assets.country">国家/地区</span><input id="asset-edit-country" type="text" maxlength="100" placeholder="中国" data-i18n="assets.countryExample" data-i18n-attr="placeholder"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.province">省份/州</span><input id="asset-edit-province" type="text" maxlength="100" placeholder="北京" data-i18n="assets.provinceExample" data-i18n-attr="placeholder"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.city">城市</span><input id="asset-edit-city" type="text" maxlength="100" placeholder="北京" data-i18n="assets.cityExample" data-i18n-attr="placeholder"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.status">状态</span><select id="asset-edit-status"><option value="active" data-i18n="assets.statusActive">活跃</option><option value="inactive" data-i18n="assets.statusInactive">停用</option></select></label>
+                                    </div>
+                                </div>
+                                <div class="asset-editor-section-group">
+                                    <div class="asset-editor-group-heading"><h3 data-i18n="assets.responsibilityBusiness">责任与业务属性</h3><p data-i18n="assets.responsibilityBusinessHint">用于资产归属、运营分级与风险排序</p></div>
+                                    <div class="asset-editor-grid">
+                                        <label class="asset-editor-field"><span data-i18n="assets.responsiblePerson">负责人</span><input id="asset-edit-responsible" type="text" maxlength="255"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.department">部门</span><input id="asset-edit-department" type="text" maxlength="255"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.businessSystem">业务系统</span><input id="asset-edit-business" type="text" maxlength="255"></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.environment">环境</span><select id="asset-edit-environment"><option value="">未设置</option><option value="production" data-i18n="assets.environmentProduction">生产</option><option value="staging" data-i18n="assets.environmentStaging">预发布</option><option value="testing" data-i18n="assets.environmentTesting">测试</option><option value="development" data-i18n="assets.environmentDevelopment">开发</option><option value="other" data-i18n="assets.environmentOther">其他</option></select></label>
+                                        <label class="asset-editor-field"><span data-i18n="assets.criticality">重要性</span><select id="asset-edit-criticality"><option value="">未设置</option><option value="critical" data-i18n="assets.criticalityCritical">核心</option><option value="high" data-i18n="assets.criticalityHigh">重要</option><option value="medium" data-i18n="assets.criticalityMedium">一般</option><option value="low" data-i18n="assets.criticalityLow">低</option></select></label>
+                                    </div>
+                                </div>
+                            </section>
+                            <div id="asset-editor-form-error" class="asset-form-error" role="alert" hidden></div>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeAssetEditor()" data-i18n="common.cancel">取消</button><button id="asset-editor-submit" type="submit" class="btn-primary" data-require-permission="asset:write" data-i18n="assets.addAssetAction">添加资产</button></div>
+                    </form>
+                </div>
+
+                <div id="asset-detail-modal" class="modal asset-detail-modal" style="display:none" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAssetDetail()">
+                    <div class="modal-content asset-detail-content" onclick="event.stopPropagation()">
+                        <div class="modal-header"><div><h2 data-i18n="assets.detailTitle">资产详情</h2><p id="asset-detail-subtitle" class="asset-page-subtitle"></p></div><span class="modal-close" onclick="closeAssetDetail()">&times;</span></div>
+                        <div class="modal-body">
+                            <div id="asset-detail-grid" class="asset-detail-grid"></div>
+                        </div>
+                        <div class="modal-footer"><button class="btn-secondary" onclick="closeAssetDetail()" data-i18n="common.close">关闭</button><button id="asset-detail-edit" class="btn-primary" data-require-permission="asset:write" onclick="editAssetFromDetail()" data-i18n="common.edit">编辑</button></div>
+                    </div>
+                </div>
+{{end}}

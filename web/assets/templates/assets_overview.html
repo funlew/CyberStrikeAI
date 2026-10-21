@@ -1,0 +1,80 @@
+{{define "assets/overview"}}
+<div id="page-asset-overview" class="page asset-page">
+                    <div class="page-header">
+                        <div><h2 data-i18n="assets.overviewTitle">资产概览</h2></div>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" type="button" onclick="loadAssetOverview()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-primary" type="button" onclick="switchPage('asset-library')" data-i18n="assets.viewLibrary">查看资产库</button>
+                        </div>
+                    </div>
+                    <div class="page-content asset-content">
+                        <div class="asset-overview-summary">
+                            <section class="asset-total-card">
+                                <div class="asset-total-card__layout">
+                                    <div class="asset-inventory-summary">
+                                        <div class="asset-total-card__heading">
+                                            <div class="asset-overview-icon asset-overview-icon--blue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 8 4-8 4-8-4 8-4Z"/><path d="m4 10 8 4 8-4"/><path d="m4 14 8 4 8-4"/></svg></div>
+                                            <div><span class="asset-eyebrow" data-i18n="assets.totalAssets">资产总数</span><p data-i18n="assets.totalAssetsHint">当前纳入持续监测的资产</p></div>
+                                        </div>
+                                        <strong id="asset-stat-total" class="asset-total-value">0</strong>
+                                        <div class="asset-type-grid">
+                                            <div class="asset-type-item asset-type-item--ip"><span class="asset-type-dot"></span><span data-i18n="assets.ipCount">IP 数量</span><strong id="asset-stat-ips">0</strong></div>
+                                            <div class="asset-type-item asset-type-item--domain"><span class="asset-type-dot"></span><span data-i18n="assets.domainCount">域名数量</span><strong id="asset-stat-domains">0</strong></div>
+                                            <div class="asset-type-item asset-type-item--port"><span class="asset-type-dot"></span><span data-i18n="assets.portCount">端口数量</span><strong id="asset-stat-ports">0</strong></div>
+                                        </div>
+                                    </div>
+                                    <div class="asset-protocol-compact">
+                                        <div class="asset-protocol-compact__header">
+                                            <div><h3 data-i18n="assets.protocolDistribution">协议分布</h3><p data-i18n="assets.protocolDistributionHint">按已识别服务查看资产暴露构成</p></div>
+                                            <span class="asset-panel-meta" id="asset-protocol-meta">—</span>
+                                        </div>
+                                        <div class="asset-protocol-columns"><span data-i18n="assets.protocolName">协议</span><span data-i18n="assets.assetRatio">资产占比</span><span data-i18n="assets.assetAmount">数量</span><span data-i18n="assets.ratio">占比</span></div>
+                                        <div id="asset-protocol-chart" class="asset-bar-chart asset-bar-chart--compact" aria-live="polite"><div class="muted" data-i18n="common.noData">暂无数据</div></div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="asset-recent-card">
+                                <div class="asset-recent-card__top">
+                                    <div class="asset-overview-icon asset-overview-icon--violet" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 14v4M10 16h4"/></svg></div>
+                                    <span class="asset-recent-badge" data-i18n="assets.recentWindow">7 DAYS</span>
+                                </div>
+                                <div class="asset-recent-card__body"><span data-i18n="assets.recentCount">近 7 天发现</span><strong id="asset-stat-recent">0</strong></div>
+                                <div class="asset-recent-progress"><i id="asset-recent-progress"></i></div>
+                                <p id="asset-recent-rate" class="asset-recent-caption">—</p>
+                            </section>
+                        </div>
+                        <div class="asset-insight-heading">
+                            <div><h3 data-i18n="assets.postureChanges">态势变化</h3><p data-i18n="assets.postureChangesHint">观察资产与风险在选定周期内的变化</p></div>
+                            <div class="asset-period-switch" role="group" data-i18n="assets.periodSelection" data-i18n-attr="aria-label" aria-label="周期选择">
+                                <button type="button" data-days="7" aria-pressed="false" onclick="setAssetOverviewPeriod(7)" data-i18n="assets.days7">7 天</button>
+                                <button type="button" class="active" data-days="30" aria-pressed="true" onclick="setAssetOverviewPeriod(30)" data-i18n="assets.days30">30 天</button>
+                                <button type="button" data-days="90" aria-pressed="false" onclick="setAssetOverviewPeriod(90)" data-i18n="assets.days90">90 天</button>
+                            </div>
+                        </div>
+                        <div class="asset-trend-grid">
+                            <section class="asset-panel asset-trend-panel">
+                                <div class="asset-panel-header asset-trend-header"><div class="asset-trend-heading"><h3 data-i18n="assets.assetTrend">资产增减趋势</h3><p data-i18n="assets.assetTrendHint">新增发现与当前已停用资产</p></div><div id="asset-growth-summary" class="asset-chart-summary"></div><div class="asset-chart-legend"><span class="asset-legend-added" data-i18n="assets.addedAssets">新增资产</span><span class="asset-legend-inactive" data-i18n="assets.inactiveAssets">停用资产</span></div></div>
+                                <div id="asset-growth-chart" class="asset-line-chart"><div class="muted" data-i18n="common.loading">加载中...</div></div>
+                            </section>
+                            <section class="asset-panel asset-trend-panel">
+                                <div class="asset-panel-header asset-trend-header"><div class="asset-trend-heading"><h3 data-i18n="assets.riskTrend">风险发现趋势</h3><p data-i18n="assets.riskTrendHint">新增漏洞及其中的高危与严重风险</p></div><div id="asset-risk-summary" class="asset-chart-summary"></div><div class="asset-chart-legend"><span class="asset-legend-risk" data-i18n="assets.discoveredRisks">新增漏洞</span><span class="asset-legend-high" data-i18n="assets.highRisks">高危及严重</span></div></div>
+                                <div id="asset-risk-chart" class="asset-line-chart"><div class="muted" data-i18n="common.loading">加载中...</div></div>
+                            </section>
+                        </div>
+                        <section class="asset-panel asset-coverage-panel">
+                            <div class="asset-panel-header"><div><h3 data-i18n="assets.scanCoverage">扫描覆盖</h3><p data-i18n="assets.scanCoverageHint">识别未扫描与长期未复查的资产缺口</p></div><span id="asset-coverage-status" class="asset-panel-meta">—</span></div>
+                            <div class="asset-coverage-layout">
+                                <div class="asset-coverage-overview">
+                                    <div class="asset-coverage-gauge" id="asset-coverage-gauge"><div><strong id="asset-coverage-rate">0%</strong><span data-i18n="assets.overallCoverage">总体覆盖率</span></div></div>
+                                </div>
+                                <div class="asset-coverage-metrics">
+                                    <div class="asset-coverage-metric asset-coverage-metric--scanned"><span data-i18n="assets.scannedAssets">已扫描资产</span><strong id="asset-coverage-scanned">0</strong><small data-i18n="assets.scannedAssetsHint">至少完成过一次扫描</small></div>
+                                    <div class="asset-coverage-metric asset-coverage-metric--recent"><span data-i18n="assets.recentlyScanned">近 30 天覆盖</span><strong id="asset-coverage-recent">0</strong><small id="asset-coverage-recent-rate">0%</small></div>
+                                    <div class="asset-coverage-metric asset-coverage-metric--never"><span data-i18n="assets.neverScanned">从未扫描</span><strong id="asset-coverage-never">0</strong><small data-i18n="assets.neverScannedHint">建议优先纳入扫描</small></div>
+                                    <div class="asset-coverage-metric asset-coverage-metric--stale"><span data-i18n="assets.staleScans">超过 30 天未扫描</span><strong id="asset-coverage-stale">0</strong><small data-i18n="assets.staleScansHint">扫描结果可能已过期</small></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+{{end}}

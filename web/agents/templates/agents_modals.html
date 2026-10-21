@@ -1,0 +1,57 @@
+{{define "agents/modals"}}
+<div id="agent-md-modal" class="modal" style="display: none;">
+                    <div class="modal-content" style="max-width: 720px; max-height: 92vh;">
+                        <div class="modal-header">
+                            <h2 id="agent-md-modal-title" data-i18n="agentsPage.editTitle">编辑 Agent</h2>
+                            <span class="modal-close" onclick="closeMarkdownAgentModal()">&times;</span>
+                        </div>
+                        <div class="modal-body" style="overflow-y: auto; max-height: calc(92vh - 130px);">
+                            <input type="hidden" id="agent-md-filename-current" value="">
+                            <div class="form-group" id="agent-md-filename-row">
+                                <label data-i18n="agentsPage.filename">文件名（.md）</label>
+                                <input type="text" id="agent-md-filename" data-i18n="agentsPage.filenamePlaceholder" data-i18n-attr="placeholder" placeholder="例如 code-reviewer.md" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldRole">类型</label>
+                                <select id="agent-md-role" class="form-select">
+                                    <option value="sub" data-i18n="agentsPage.roleSub">子代理</option>
+                                    <option value="orchestrator" data-i18n="agentsPage.roleOrchestrator">主代理（Deep 协调者）</option>
+                                </select>
+                                <p class="form-hint muted" data-i18n="agentsPage.roleHint">主代理也可使用固定文件名 orchestrator.md；全目录仅允许一个主代理。</p>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldId">Agent ID（留空则从名称生成）</label>
+                                <input type="text" id="agent-md-id" placeholder="code-reviewer" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldName">显示名称</label>
+                                <input type="text" id="agent-md-name" data-i18n="agentsPage.namePlaceholder" data-i18n-attr="placeholder" placeholder="Code Reviewer" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldDesc">描述</label>
+                                <textarea id="agent-md-description" rows="2" data-i18n="agentsPage.descPlaceholder" data-i18n-attr="placeholder" placeholder="何时调用该子代理"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldTools">可用工具（逗号分隔，与角色工具 key 一致）</label>
+                                <input type="text" id="agent-md-tools" placeholder="tool_a, tool_b" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldBindRole">绑定角色（可选）</label>
+                                <input type="text" id="agent-md-bind-role" placeholder="" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldMaxIter">最大迭代（0=沿用设置页 agent.max_iterations）</label>
+                                <input type="number" id="agent-md-max-iter" min="0" value="0" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="agentsPage.fieldInstruction">系统提示词（Markdown 正文）</label>
+                                <textarea id="agent-md-instruction" rows="14" data-i18n="agentsPage.instructionPlaceholder" data-i18n-attr="placeholder" placeholder="You are a specialist agent..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-secondary" onclick="closeMarkdownAgentModal()" data-i18n="common.cancel">取消</button>
+                            <button type="button" class="btn-primary" data-require-permission="agents:write" onclick="saveMarkdownAgent()" data-i18n="common.save">保存</button>
+                        </div>
+                    </div>
+                </div>
+{{end}}

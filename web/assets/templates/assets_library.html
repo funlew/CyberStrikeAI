@@ -1,0 +1,88 @@
+{{define "assets/library"}}
+<div id="page-asset-library" class="page asset-page">
+                    <div class="page-header">
+                        <div><h2 data-i18n="assets.libraryTitle">资产库</h2></div>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" type="button" onclick="loadAssets()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-secondary" data-require-permission="asset:write" type="button" onclick="openAssetImport()" data-i18n="assets.bulkImport">批量导入</button>
+                            <button class="btn-primary" data-require-permission="asset:write" type="button" onclick="openAssetEditor()" data-i18n="assets.addAsset">+ 新增资产</button>
+                        </div>
+                    </div>
+                    <div class="page-content asset-content">
+                        <div class="asset-toolbar">
+                            <div class="asset-toolbar-main">
+                                <input id="asset-search" type="search" data-i18n="assets.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索主机、IP、域名、标题、服务、责任人或标签" onkeydown="if(event.key==='Enter')loadAssets(1)">
+                                <select id="asset-status-filter" onchange="loadAssets(1)"><option value="" data-i18n="assets.allStatuses">全部状态</option><option value="active" data-i18n="assets.statusActive">活跃</option><option value="inactive" data-i18n="assets.statusInactive">停用</option></select>
+                                <select id="asset-project-filter" onchange="loadAssets(1)"><option value="" data-i18n="assets.allProjects">全部项目</option></select>
+                                <button class="btn-secondary" type="button" onclick="toggleAssetAdvancedFilters()" aria-expanded="false" id="asset-advanced-toggle" data-i18n="assets.advancedFilters">高级筛选</button>
+                                <button class="btn-primary" type="button" onclick="loadAssets(1)" data-i18n="common.search">搜索</button>
+                                <button class="btn-link" type="button" onclick="resetAssetFilters()" data-i18n="assets.resetFilters">重置</button>
+                                <span id="asset-list-meta" class="muted"></span>
+                            </div>
+                            <div id="asset-advanced-filters" class="asset-advanced-filters" hidden>
+                                <label><span data-i18n="assets.riskLevel">风险等级</span><select id="asset-risk-filter"><option value="" data-i18n="assets.allRisks">全部风险</option><option value="critical" data-i18n="assets.riskCritical">严重</option><option value="high" data-i18n="assets.riskHigh">高危</option><option value="medium" data-i18n="assets.riskMedium">中危</option><option value="low" data-i18n="assets.riskLow">低危</option><option value="info" data-i18n="assets.riskInfo">信息</option><option value="normal" data-i18n="assets.riskNormal">正常</option><option value="unassessed" data-i18n="assets.riskUnassessed">未评估</option></select></label>
+                                <label><span data-i18n="assets.minVulnerabilityCount">漏洞数量至少</span><input id="asset-vuln-min-filter" type="number" min="0" placeholder="0"></label>
+                                <label><span data-i18n="assets.protocol">协议</span><input id="asset-protocol-filter" type="text" placeholder="https"></label>
+                                <label><span>端口</span><input id="asset-port-filter" type="number" min="0" max="65535" placeholder="443"></label>
+                                <label><span data-i18n="assets.source">来源</span><input id="asset-source-filter" type="text" placeholder="fofa / manual"></label>
+                                <label><span data-i18n="assets.tagsLabel">标签</span><input id="asset-tag-filter" type="text" placeholder="公网"></label>
+                                <label><span data-i18n="assets.scanState">扫描状态</span><select id="asset-scan-filter"><option value="" data-i18n="assets.allScanStates">全部</option><option value="never" data-i18n="assets.neverScannedFilter">从未扫描</option><option value="30" data-i18n="assets.overdue30">30 天未扫描</option><option value="60" data-i18n="assets.overdue60">60 天未扫描</option><option value="90" data-i18n="assets.overdue90">90 天未扫描</option><option value="scanned" data-i18n="assets.scannedFilter">已扫描</option></select></label>
+                                <label><span data-i18n="assets.country">国家/地区</span><input id="asset-country-filter" type="text" placeholder="CN"></label>
+                                <label><span data-i18n="assets.province">省份/州</span><input id="asset-province-filter" type="text"></label>
+                                <label><span data-i18n="assets.city">城市</span><input id="asset-city-filter" type="text"></label>
+                                <label><span data-i18n="assets.responsiblePerson">负责人</span><input id="asset-responsible-filter" type="text"></label>
+                                <label><span data-i18n="assets.department">部门</span><input id="asset-department-filter" type="text"></label>
+                                <label><span data-i18n="assets.businessSystem">业务系统</span><input id="asset-business-filter" type="text"></label>
+                                <label><span data-i18n="assets.environment">环境</span><select id="asset-environment-filter"><option value="" data-i18n="assets.allEnvironments">全部环境</option><option value="production" data-i18n="assets.environmentProduction">生产</option><option value="staging" data-i18n="assets.environmentStaging">预发布</option><option value="testing" data-i18n="assets.environmentTesting">测试</option><option value="development" data-i18n="assets.environmentDevelopment">开发</option><option value="other" data-i18n="assets.environmentOther">其他</option></select></label>
+                                <label><span data-i18n="assets.criticality">重要性</span><select id="asset-criticality-filter"><option value="" data-i18n="assets.allCriticalities">全部级别</option><option value="critical" data-i18n="assets.criticalityCritical">核心</option><option value="high" data-i18n="assets.criticalityHigh">重要</option><option value="medium" data-i18n="assets.criticalityMedium">一般</option><option value="low" data-i18n="assets.criticalityLow">低</option></select></label>
+                                <label><span data-i18n="assets.firstSeenStart">首次发现开始</span><input id="asset-first-seen-after-filter" type="date"></label>
+                                <label><span data-i18n="assets.firstSeenEnd">首次发现结束</span><input id="asset-first-seen-before-filter" type="date"></label>
+                                <label><span data-i18n="assets.lastSeenStart">最近发现开始</span><input id="asset-last-seen-after-filter" type="date"></label>
+                                <label><span data-i18n="assets.lastSeenEnd">最近发现结束</span><input id="asset-last-seen-before-filter" type="date"></label>
+                                <label><span data-i18n="assets.sort">排序</span><select id="asset-sort-filter"><option value="last_seen_at:desc" data-i18n="assets.sortLastSeenDesc">最近发现（新到旧）</option><option value="last_scan_at:asc" data-i18n="assets.sortLastScanAsc">最久未扫描优先</option><option value="last_scan_at:desc" data-i18n="assets.sortLastScanDesc">最近扫描优先</option><option value="risk_level:desc" data-i18n="assets.sortRiskDesc">风险从高到低</option><option value="vulnerability_count:desc" data-i18n="assets.sortVulnerabilityDesc">漏洞数量从多到少</option><option value="first_seen_at:desc" data-i18n="assets.sortFirstSeenDesc">首次发现（新到旧）</option><option value="host:asc" data-i18n="assets.sortHostAsc">目标名称</option><option value="port:asc" data-i18n="assets.sortPortAsc">端口</option></select></label>
+                            </div>
+                            <div class="asset-saved-views">
+                                <select id="asset-saved-view-select" onchange="applyAssetSavedView(this.value)"><option value="" data-i18n="assets.savedViews">保存的筛选视图</option></select>
+                                <button class="btn-secondary" type="button" onclick="saveCurrentAssetView()" data-i18n="assets.saveCurrentView">保存当前视图</button>
+                                <button class="btn-link" type="button" onclick="deleteCurrentAssetView()" data-i18n="assets.deleteView">删除视图</button>
+                            </div>
+                        </div>
+                        <div id="asset-batch-actions" class="asset-batch-actions" hidden>
+                            <div class="asset-batch-selection" aria-live="polite">
+                                <span class="asset-batch-selection-mark" aria-hidden="true"></span>
+                                <strong id="asset-selected-count"></strong>
+                                <button class="asset-batch-text-action" type="button" onclick="clearAssetSelection()" data-i18n="assets.clearSelection">清除选择</button>
+                                <button id="asset-select-all-results" class="asset-batch-text-action asset-batch-select-all" type="button" onclick="selectAllMatchingAssets()" hidden>选择全部结果</button>
+                                <span id="asset-all-results-selected" class="asset-batch-all-selected" hidden></span>
+                            </div>
+                            <div class="asset-batch-primary-actions">
+                                <button class="btn-secondary" data-require-permission="asset:write" type="button" onclick="openAssetProjectModal()" data-i18n="assets.bindProject">绑定项目</button>
+                                <button class="btn-secondary" data-require-permission="asset:write" type="button" onclick="openAssetBulkEdit()" data-i18n="assets.bulkEdit">批量编辑</button>
+                                <button class="btn-primary" type="button" onclick="openAssetScanModal('task')" data-i18n="assets.createScanTask">创建扫描任务</button>
+                                <details id="asset-batch-more" class="asset-batch-more">
+                                    <summary class="btn-secondary" data-i18n="assets.moreActions">更多</summary>
+                                    <div class="asset-batch-menu" role="menu">
+                                        <button type="button" role="menuitem" onclick="closeAssetBatchMenu();openAssetScanModal('chat')" data-i18n="assets.sendToChat">发送到对话</button>
+                                        <div class="asset-batch-menu-separator" role="separator"></div>
+                                        <div class="asset-batch-menu-label" data-i18n="assets.export">导出</div>
+                                        <button type="button" role="menuitem" onclick="closeAssetBatchMenu();exportSelectedAssets('csv')" data-i18n="assets.exportCsv">导出 CSV</button>
+                                        <button type="button" role="menuitem" onclick="closeAssetBatchMenu();exportSelectedAssets('xlsx')" data-i18n="assets.exportXlsx">导出 XLSX</button>
+                                        <span class="asset-batch-permission-action" data-require-permission="asset:write"><button id="asset-merge-selected" type="button" role="menuitem" data-require-permission="asset:delete" onclick="closeAssetBatchMenu();mergeSelectedAssets()" data-i18n="assets.mergeDuplicates">合并重复资产</button></span>
+                                        <div class="asset-batch-menu-separator" role="separator"></div>
+                                        <button class="asset-batch-menu-danger" data-require-permission="asset:delete" type="button" role="menuitem" onclick="closeAssetBatchMenu();deleteSelectedAssets()" data-i18n="assets.batchDelete">批量删除…</button>
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+                        <div class="asset-list-card">
+                            <div class="asset-table-wrap">
+                                <table class="asset-table">
+                                    <thead><tr><th class="asset-check-cell"><input id="asset-select-page" class="theme-checkbox" type="checkbox" onchange="toggleAssetPageSelection(this.checked)" data-i18n="assets.selectPage" data-i18n-attr="aria-label" aria-label="选择本页"></th><th data-i18n="assets.target">目标</th><th data-i18n="assets.service">服务</th><th data-i18n="assets.project">所属项目</th><th data-i18n="assets.ownership">归属</th><th data-i18n="assets.lastScan">上次扫描</th><th data-i18n="assets.relatedVulnerabilities">相关漏洞</th><th data-i18n="assets.riskLevel">风险等级</th><th data-i18n="assets.status">状态</th><th data-i18n="infoCollect.actions">操作</th></tr></thead>
+                                    <tbody id="asset-table-body"><tr><td colspan="10" class="muted" data-i18n="common.noData">暂无数据</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div id="asset-pagination" class="pagination-container pagination-fixed"></div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

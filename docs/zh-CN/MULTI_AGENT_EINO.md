@@ -46,9 +46,9 @@
 - `internal/handler/multi_agent_prepare.go` — 会话准备（含 WebShell）  
 - `internal/einomcp/` — MCP → Eino Tool  
 - `config.yaml` — `multi_agent` 示例块  
-- `web/static/js/chat.js` — 模式选择与 stream URL  
-- `web/static/js/webshell.js` — WebShell AI 流式 URL 与主聊天模式对齐  
-- `web/static/js/settings.js` — 多代理标量、Eino 模型 retry/failover 设置保存  
+- `web/chat/static/js/chat.js` — 模式选择与 stream URL  
+- `web/webshell/static/js/webshell.js` — WebShell AI 流式 URL 与主聊天模式对齐  
+- `web/settings/static/js/settings.js` — 多代理标量、Eino 模型 retry/failover 设置保存  
 
 ## 版本记录
 

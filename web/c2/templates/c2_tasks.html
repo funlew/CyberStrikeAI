@@ -1,0 +1,83 @@
+{{define "c2/tasks"}}
+<div id="page-c2-tasks" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="c2.tasks.title">任务管理</h2>
+                        <div class="page-header-actions">
+                            <button type="button" class="btn-danger" id="c2-tasks-batch-delete" data-require-permission="c2:delete" disabled onclick="C2.deleteSelectedTasks()"><span data-i18n="c2.tasks.batchDelete">批量删除</span></button>
+                            <button type="button" class="btn-secondary" onclick="C2.loadTasks()"><span data-i18n="common.refresh">刷新</span></button>
+                        </div>
+                    </div>
+                    <div class="page-content c2-tasks-page-wrap">
+                        <div class="c2-tasks-summary" id="c2-tasks-summary" hidden>
+                            <span class="c2-tasks-stat">
+                                <span class="c2-tasks-stat-label" data-i18n="c2.tasks.statTotal">当前筛选</span>
+                                <strong id="c2-tasks-stat-total">0</strong>
+                            </span>
+                            <span class="c2-tasks-stat c2-tasks-stat--success">
+                                <span class="c2-tasks-stat-label" data-i18n="c2.tasks.success">成功</span>
+                                <strong id="c2-tasks-stat-success">0</strong>
+                            </span>
+                            <span class="c2-tasks-stat c2-tasks-stat--failed">
+                                <span class="c2-tasks-stat-label" data-i18n="c2.tasks.failed">失败</span>
+                                <strong id="c2-tasks-stat-failed">0</strong>
+                            </span>
+                            <span class="c2-tasks-stat c2-tasks-stat--pending">
+                                <span class="c2-tasks-stat-label" data-i18n="c2.tasks.pending">待处理</span>
+                                <strong id="c2-tasks-stat-pending">0</strong>
+                            </span>
+                        </div>
+                        <div class="c2-tasks-filter-card">
+                            <div class="c2-tasks-time-presets" id="c2-tasks-time-presets">
+                                <span class="c2-tasks-time-presets-label" data-i18n="c2.tasks.timePresets">快捷</span>
+                                <button type="button" class="c2-tasks-time-preset-btn" data-preset="15m" data-i18n="c2.tasks.preset15m">最近15分钟</button>
+                                <button type="button" class="c2-tasks-time-preset-btn" data-preset="1h" data-i18n="c2.tasks.preset1h">最近1小时</button>
+                                <button type="button" class="c2-tasks-time-preset-btn" data-preset="24h" data-i18n="c2.tasks.preset24h">最近24小时</button>
+                                <button type="button" class="c2-tasks-time-preset-btn" data-preset="7d" data-i18n="c2.tasks.preset7d">最近7天</button>
+                                <button type="button" class="c2-tasks-time-preset-btn" data-preset="all" data-i18n="c2.tasks.presetAll">全部</button>
+                            </div>
+                            <div class="c2-tasks-filter-fields">
+                                <label class="c2-tasks-field">
+                                    <span data-i18n="c2.tasks.colStatus">状态</span>
+                                    <select id="c2-tasks-filter-status" class="form-control">
+                                        <option value="" data-i18n="c2.tasks.filterAllStatuses">全部状态</option>
+                                        <option value="queued" data-i18n="c2.tasks.queued">队列中</option>
+                                        <option value="sent" data-i18n="c2.tasks.sent">已发送</option>
+                                        <option value="running" data-i18n="c2.tasks.running">执行中</option>
+                                        <option value="success" data-i18n="c2.tasks.success">成功</option>
+                                        <option value="failed" data-i18n="c2.tasks.failed">失败</option>
+                                        <option value="cancelled" data-i18n="c2.tasks.cancelled">已取消</option>
+                                    </select>
+                                </label>
+                                <label class="c2-tasks-field">
+                                    <span data-i18n="c2.tasks.colType">类型</span>
+                                    <select id="c2-tasks-filter-type" class="form-control">
+                                        <option value="" data-i18n="c2.tasks.filterAllTypes">全部类型</option>
+                                        <option value="shell">shell</option>
+                                        <option value="exec">exec</option>
+                                        <option value="ls">ls</option>
+                                        <option value="pwd">pwd</option>
+                                        <option value="cd">cd</option>
+                                        <option value="download">download</option>
+                                        <option value="upload">upload</option>
+                                        <option value="ps">ps</option>
+                                        <option value="sleep">sleep</option>
+                                        <option value="screenshot">screenshot</option>
+                                    </select>
+                                </label>
+                                <label class="c2-tasks-field c2-tasks-field--session">
+                                    <span data-i18n="c2.tasks.filterSession">会话 ID</span>
+                                    <input type="text" id="c2-tasks-filter-session" class="form-control" data-i18n="c2.tasks.filterSessionPlaceholder" data-i18n-attr="placeholder" placeholder="s_xxxxxxxx" autocomplete="off" spellcheck="false" />
+                                </label>
+                                <div class="c2-tasks-filter-actions">
+                                    <button type="button" class="btn-primary btn-small" onclick="C2.applyTasksFilters()" data-i18n="c2.tasks.applyFilters">应用筛选</button>
+                                    <button type="button" class="btn-secondary btn-small" onclick="C2.resetTasksFilters()" data-i18n="c2.tasks.resetFilters">重置</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="c2-tasks-panel">
+                            <div id="c2-task-list" class="c2-tasks-list-container"></div>
+                            <div id="c2-tasks-pagination" class="pagination-container c2-tasks-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

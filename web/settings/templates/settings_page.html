@@ -1,0 +1,1646 @@
+{{define "settings/page"}}
+<div id="page-settings" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="settings.title">系统设置</h2>
+                    </div>
+                    <div class="page-content settings-layout">
+                        <!-- 左侧导航栏 -->
+                        <aside class="settings-sidebar">
+                            <nav class="settings-nav">
+                                <div class="settings-nav-item active" data-section="basic" onclick="switchSettingsSection('basic')">
+                                    <span data-i18n="settings.nav.basic">基本设置</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="token-usage" role="button" tabindex="0" onclick="switchSettingsSection('token-usage')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); switchSettingsSection('token-usage'); }">
+                                    <span data-i18n="settings.nav.tokenUsage">Token 用量</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="hitl" onclick="switchSettingsSection('hitl')">
+                                    <span data-i18n="settings.nav.hitl">人机协同</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="infocollect" onclick="switchSettingsSection('infocollect')">
+                                    <span data-i18n="settings.nav.infocollect">资产管理</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="knowledge" onclick="switchSettingsSection('knowledge')">
+                                    <span data-i18n="settings.nav.knowledge">知识库</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="c2" onclick="switchSettingsSection('c2')">
+                                    <span data-i18n="settings.nav.c2">C2</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="robots" onclick="switchSettingsSection('robots')">
+                                    <span data-i18n="settings.nav.robots">机器人设置</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="terminal" onclick="switchSettingsSection('terminal')">
+                                    <span data-i18n="settings.nav.terminal">终端</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="security" onclick="switchSettingsSection('security')">
+                                    <span data-i18n="settings.nav.security">安全设置</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="audit" onclick="switchSettingsSection('audit')">
+                                    <span data-i18n="settings.nav.audit">日志审计</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="storage" onclick="switchSettingsSection('storage')">
+                                    <span data-i18n="settings.nav.storage">存储清理</span>
+                                </div>
+                                <div class="settings-nav-item" data-section="update" data-require-permission="update:read" onclick="switchSettingsSection('update')">
+                                    <span data-i18n="settings.nav.update">一键更新</span>
+                                </div>
+                            </nav>
+                        </aside>
+                        
+                        <!-- 右侧内容区域 -->
+                        <div class="settings-content">
+                            <div id="settings-section-token-usage" class="settings-section-content token-usage-panel">
+                                <div class="settings-section-header token-usage-header">
+                                    <div><h3 data-i18n="settings.nav.tokenUsage">Token 用量</h3><p class="token-usage-subtitle" data-i18n="tokenUsageUI.subtitle">查看模型消耗、缓存利用与使用趋势</p></div>
+                                    <button id="settings-token-refresh" type="button" class="btn-secondary" onclick="refreshTokenUsage()" data-i18n="common.refresh">刷新</button>
+                                </div>
+                                <div class="token-usage-toolbar">
+                                    <label for="settings-token-days" data-i18n="dashboard.usagePeriod">统计周期</label>
+                                    <select id="settings-token-days" onchange="changeTokenUsagePeriod(this.value)">
+                                        <option value="7" data-i18n="dashboard.usage7Days">近 7 天</option>
+                                        <option value="30" data-i18n="dashboard.usage30Days">近 30 天</option>
+                                        <option value="90" data-i18n="dashboard.usage90Days">近 90 天</option>
+                                    </select>
+                                    <span id="settings-token-scope" class="token-usage-scope"></span>
+                                </div>
+                                <details class="token-usage-note"><summary data-i18n="tokenUsageUI.scopeNote">统计口径与说明</summary><p data-i18n="dashboard.usageScope">统计已记录的 Agent 运行中模型返回的用量，包括子 Agent。缓存读取和写入属于输入，推理属于输出，不重复加入总量。未返回或未采集的用量不在统计内；这不是供应商账单。模型按运行配置归类，切换模型的运行可能混合用量。</p></details>
+                                <div id="settings-token-analysis" aria-live="polite"></div>
+                            </div>
+
+                            <!-- 基本设置 -->
+                            <div id="settings-section-basic" class="settings-section-content active">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settingsBasic.basicTitle">基本设置</h3>
+                                </div>
+                                
+                                <!-- AI 通道配置 -->
+                                <div class="settings-subsection">
+                                    <div class="ai-channel-manager">
+                                        <div class="ai-channel-manager-header">
+                                            <div>
+                                                <h4 data-i18n="settingsBasic.openaiConfig">AI 通道配置</h4>
+                                                <p id="ai-channel-save-hint" class="ai-channel-manager-hint" data-i18n="settingsBasic.aiChannelHint">通过下拉切换已保存通道；保存后写入 ai.channels，默认通道用于新对话和未指定通道的任务。</p>
+                                            </div>
+                                            <div class="ai-channel-header-actions">
+                                                <button type="button" class="btn-secondary" onclick="createAIChannelFromForm()" data-i18n="settingsBasic.aiChannelNew">新增</button>
+                                                <button type="button" class="btn-primary ai-channel-save-btn" onclick="saveSelectedAIChannel()" data-i18n="settingsBasic.aiChannelSave">保存更改</button>
+                                            </div>
+                                        </div>
+                                        <div class="ai-channel-manager-body">
+                                            <div class="ai-channel-switcher" aria-label="AI 通道选择" data-i18n="settingsBasic.aiChannelListAria" data-i18n-attr="aria-label">
+                                                <div class="ai-channel-switcher-field">
+                                                    <label for="ai-channel-select" data-i18n="settingsBasic.aiChannelCurrent">当前通道</label>
+                                                    <select id="ai-channel-select" class="ai-channel-switch-select" onchange="selectAIChannelForEditing(this.value)"></select>
+                                                </div>
+                                                <div class="ai-channel-switcher-actions">
+                                                    <button type="button" class="btn-secondary" onclick="probeSelectedAIChannels()" data-i18n="settingsBasic.aiChannelBulkProbe" data-i18n-title="settingsBasic.aiChannelBulkProbeTitle" data-i18n-attr="title">批量探活</button>
+                                                    <button type="button" class="btn-secondary" onclick="copyAIChannelFromForm()" data-i18n="settingsBasic.aiChannelCopy">复制</button>
+                                                    <button type="button" class="btn-secondary" onclick="setSelectedAIChannelDefault()" data-i18n="settingsBasic.aiChannelSetDefault">设为默认</button>
+                                                    <button type="button" class="btn-secondary danger" onclick="deleteSelectedAIChannel()" data-i18n="settingsBasic.aiChannelDelete">删除</button>
+                                                </div>
+                                                <div id="ai-channel-list" class="ai-channel-list" aria-live="polite"></div>
+                                            </div>
+                                            <div class="ai-channel-editor">
+                                                <div class="ai-channel-editor-head">
+                                                    <div>
+                                                        <span class="ai-channel-editor-kicker" data-i18n="settingsBasic.aiChannelFormContext">编辑当前选择的通道</span>
+                                                        <p id="ai-channel-editor-title" class="ai-channel-editor-title">-</p>
+                                                    </div>
+                                                    <div id="ai-channel-editor-meta" class="ai-channel-editor-meta" aria-live="polite"></div>
+                                                </div>
+                                                <div class="settings-form ai-channel-editor-form">
+                                                    <section class="ai-channel-form-section">
+                                                        <div class="ai-channel-form-section-head">
+                                                            <div>
+                                                                <h6 data-i18n="settingsBasic.aiChannelConnectionSection">连接信息</h6>
+                                                                <p data-i18n="settingsBasic.aiChannelConnectionHint">先确认服务商、地址、密钥和模型，测试连接会使用这些信息。</p>
+                                                            </div>
+                                                            <div class="ai-channel-section-actions">
+                                                                <button type="button" id="test-openai-btn" class="btn-secondary" onclick="testOpenAIConnection()" data-i18n="settingsBasic.testConnection">测试连接</button>
+                                                                <span id="test-openai-result" class="form-inline-result connection-test-result"></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ai-channel-form-grid">
+                                                            <div class="form-group">
+                                                                <label for="ai-channel-name" data-i18n="settingsBasic.aiChannelName">通道名称</label>
+                                                                <input type="text" id="ai-channel-name" placeholder="Qwen Max" maxlength="24" />
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="openai-provider" data-i18n="settingsBasic.apiProvider">API 提供商</label>
+                                                                <select id="openai-provider">
+                                                                    <option value="openai_compatible" data-i18n="settingsBasic.providerOpenAI">OpenAI / 兼容 OpenAI 协议</option>
+                                                                    <option value="claude" data-i18n="settingsBasic.providerClaude">Claude (Anthropic Messages API)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group span-2">
+                                                                <label for="openai-base-url">Base URL <span class="required-mark">*</span></label>
+                                                                <input type="text" id="openai-base-url" data-i18n="settingsBasic.openaiBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="https://api.openai.com/v1" required />
+                                                            </div>
+                                                            <div class="form-group span-2">
+                                                                <label for="openai-api-key">API Key <span class="required-mark">*</span></label>
+                                                                <input type="password" id="openai-api-key" data-i18n="settingsBasic.openaiApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="输入OpenAI API Key" required />
+                                                            </div>
+                                                            <div class="form-group span-2">
+                                                                <label for="openai-model"><span data-i18n="settingsBasic.model">模型</span> <span class="required-mark">*</span></label>
+                                                                <div class="model-pick-row">
+                                                                    <input type="text" id="openai-model" class="model-pick-input" data-i18n="settingsBasic.modelPlaceholder" data-i18n-attr="placeholder" placeholder="gpt-4" required />
+                                                                    <select id="openai-model-select" class="model-pick-native" style="display: none;" title="" aria-hidden="true" tabindex="-1">
+                                                                        <option value="" disabled data-i18n="settingsBasic.modelsListSelectPlaceholder">请选择模型</option>
+                                                                    </select>
+                                                                    <a href="javascript:void(0)" id="fetch-openai-models-btn" class="model-pick-fetch-link" onclick="fetchModelList('openai')" data-i18n="settingsBasic.fetchModels">获取列表</a>
+                                                                </div>
+                                                                <small id="fetch-openai-models-hint" class="form-hint" style="display: none;"></small>
+                                                                <span id="fetch-openai-models-result" class="form-inline-result"></span>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+
+                                                    <section class="ai-channel-form-section">
+                                                        <div class="ai-channel-form-section-head">
+                                                            <div>
+                                                                <h6 data-i18n="settingsBasic.aiChannelLimitsSection">额度设置</h6>
+                                                                <p data-i18n="settingsBasic.aiChannelLimitsHint">Token 上限控制上下文窗口和单次输出。</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ai-channel-form-grid">
+                                                            <div class="form-group">
+                                                                <label for="openai-max-total-tokens"><span data-i18n="settingsBasic.maxTotalTokens">最大上下文 Token 数</span></label>
+                                                                <input type="number" id="openai-max-total-tokens" data-i18n="settingsBasic.maxTotalTokensPlaceholder" data-i18n-attr="placeholder" placeholder="120000" min="1000" step="1000" />
+                                                                <small class="form-hint" data-i18n="settingsBasic.maxTotalTokensHint">内存压缩和攻击链构建共用此配置，默认 120000</small>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="openai-max-completion-tokens"><span data-i18n="settingsBasic.maxCompletionTokens">最大输出 Token 数</span></label>
+                                                                <input type="number" id="openai-max-completion-tokens" data-i18n="settingsBasic.maxCompletionTokensPlaceholder" data-i18n-attr="placeholder" placeholder="16384" min="1" step="256" />
+                                                                <small class="form-hint" data-i18n="settingsBasic.maxCompletionTokensHint">单次模型回复的输出上限，默认 16384</small>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+
+                                                    <details class="ai-channel-form-section ai-channel-advanced-section">
+                                                        <summary>
+                                                            <span>
+                                                                <strong data-i18n="settingsBasic.openaiReasoningTitle">推理设置</strong>
+                                                                <small data-i18n="settingsBasic.openaiReasoningHint">作为该 AI 通道的默认推理设置；对话页「会话设置」可覆盖。</small>
+                                                            </span>
+                                                        </summary>
+                                                        <div class="ai-channel-reasoning-grid">
+                                                            <div class="form-group">
+                                                                <label for="openai-reasoning-mode" data-i18n="chat.reasoningModeLabel">模式</label>
+                                                                <select id="openai-reasoning-mode">
+                                                                    <option value="auto" data-i18n="chat.reasoningModeAuto">自动</option>
+                                                                    <option value="on" data-i18n="chat.reasoningModeOn">开启</option>
+                                                                    <option value="off" data-i18n="chat.reasoningModeOff">关闭</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="openai-reasoning-effort" data-i18n="chat.reasoningEffortLabel">强度</label>
+                                                                <select id="openai-reasoning-effort">
+                                                                    <option value="" data-i18n="chat.reasoningEffortUnset">不指定</option>
+                                                                    <option value="low">low</option>
+                                                                    <option value="medium">medium</option>
+                                                                    <option value="high">high</option>
+                                                                    <option value="xhigh">xhigh</option>
+                                                                    <option value="max">max</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="openai-reasoning-profile" data-i18n="settingsBasic.openaiReasoningProfile">线路</label>
+                                                                <select id="openai-reasoning-profile">
+                                                                    <option value="auto">auto</option>
+                                                                    <option value="deepseek">deepseek</option>
+                                                                    <option value="deepseek_compat">deepseek_compat</option>
+                                                                    <option value="openai_compat">openai_compat</option>
+                                                                    <option value="output_config_effort">output_config_effort</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <label class="checkbox-label ai-channel-reasoning-toggle">
+                                                            <input type="checkbox" id="openai-reasoning-allow-client" class="modern-checkbox" checked />
+                                                            <span class="checkbox-custom"></span>
+                                                            <span class="checkbox-text" data-i18n="settingsBasic.openaiReasoningAllowClient">允许对话页覆盖推理选项</span>
+                                                        </label>
+                                                    </details>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vision 视觉分析 -->
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settingsBasic.visionConfig">视觉分析（analyze_image）</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="vision-enabled" class="modern-checkbox" onchange="syncVisionFormEnabled()" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settingsBasic.visionEnabled">启用视觉分析工具 analyze_image</span>
+                                            </label>
+                                            <small class="form-hint" data-i18n="settingsBasic.visionEnabledHint">启用后注册 MCP 工具；图片仅在单次 VL 调用中出现，Agent 上下文只保留文字摘要。</small>
+                                        </div>
+                                        <div id="vision-fields-panel">
+                                            <div class="form-group">
+                                                <label for="vision-provider" data-i18n="settingsBasic.provider">提供商</label>
+                                                <select id="vision-provider" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; background: var(--card-bg, #fff); color: var(--text-color, #2d3748); font-size: 0.875rem;">
+                                                    <option value="" data-i18n="settingsBasic.visionProviderReuseOpenAI">默认 AI 通道（留空复用）</option>
+                                                    <option value="openai" data-i18n="settingsBasic.providerOpenAI">OpenAI / 兼容 OpenAI 协议</option>
+                                                    <option value="claude" data-i18n="settingsBasic.providerClaude">Claude (Anthropic Messages API)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="vision-base-url" data-i18n="settingsBasic.baseUrl">Base URL</label>
+                                                <input type="text" id="vision-base-url" data-i18n="settingsBasic.visionBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用 OpenAI Base URL" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="vision-api-key" data-i18n="settingsBasic.apiKey">API Key</label>
+                                                <input type="password" id="vision-api-key" data-i18n="settingsBasic.visionApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用 OpenAI API Key" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="vision-model"><span data-i18n="settingsBasic.visionModel">视觉模型</span> <span style="color: red;">*</span></label>
+                                                <div class="model-pick-row">
+                                                    <input type="text" id="vision-model" class="model-pick-input" data-i18n="settingsBasic.visionModelPlaceholder" data-i18n-attr="placeholder" placeholder="qwen-vl-max" />
+                                                    <select id="vision-model-select" class="model-pick-native" style="display: none;" aria-hidden="true" tabindex="-1">
+                                                        <option value="" disabled data-i18n="settingsBasic.modelsListSelectPlaceholder">请选择模型</option>
+                                                    </select>
+                                                    <a href="javascript:void(0)" id="fetch-vision-models-btn" class="model-pick-fetch-link" onclick="fetchModelList('vision')" data-i18n="settingsBasic.fetchModels">获取列表</a>
+                                                </div>
+                                                <small id="fetch-vision-models-hint" class="form-hint" style="display: none; font-size: 0.75rem; margin-top: 4px;"></small>
+                                                <span id="fetch-vision-models-result" style="font-size: 0.75rem; margin-top: 2px; display: block;"></span>
+                                            </div>
+                                            <details style="margin-top: 8px;">
+                                                <summary style="cursor: pointer; font-size: 0.875rem; color: var(--accent-color, #3182ce);" data-i18n="settingsBasic.visionAdvanced">高级：预处理与限制</summary>
+                                                <div style="margin-top: 12px;">
+                                                    <div class="form-group">
+                                                        <label for="vision-max-image-bytes" data-i18n="settingsBasic.visionMaxImageBytes">原始文件上限（字节）</label>
+                                                        <input type="number" id="vision-max-image-bytes" min="0" step="1024" placeholder="5242880" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-max-dimension" data-i18n="settingsBasic.visionMaxDimension">长边缩放像素</label>
+                                                        <input type="number" id="vision-max-dimension" min="256" step="1" placeholder="2048" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-jpeg-quality" data-i18n="settingsBasic.visionJpegQuality">JPEG 质量</label>
+                                                        <input type="number" id="vision-jpeg-quality" min="60" max="100" step="1" placeholder="82" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-max-payload-bytes" data-i18n="settingsBasic.visionMaxPayloadBytes">送 API 体积上限（字节）</label>
+                                                        <input type="number" id="vision-max-payload-bytes" min="0" step="1024" placeholder="524288" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-skip-preprocess-bytes" data-i18n="settingsBasic.visionSkipPreprocessBytes">低于该字节可原图直传</label>
+                                                        <input type="number" id="vision-skip-preprocess-bytes" min="0" step="1024" placeholder="2097152" />
+                                                        <small class="form-hint" data-i18n="settingsBasic.visionSkipPreprocessHint">0 表示始终 JPEG 压缩；需同时满足长边与 payload 限制。</small>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-detail" data-i18n="settingsBasic.visionDetail">Image detail</label>
+                                                        <select id="vision-detail" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px;">
+                                                            <option value="low">low</option>
+                                                            <option value="auto">auto</option>
+                                                            <option value="high">high</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vision-timeout-seconds" data-i18n="settingsBasic.visionTimeout">超时（秒）</label>
+                                                        <input type="number" id="vision-timeout-seconds" min="5" step="1" placeholder="60" />
+                                                    </div>
+                                                </div>
+                                            </details>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                                <a href="javascript:void(0)" id="test-vision-btn" onclick="testVisionConnection()" style="font-size: 0.8125rem; color: var(--accent-color, #3182ce); text-decoration: none; cursor: pointer;" data-i18n="settingsBasic.testConnection">测试连接</a>
+                                                <span id="test-vision-result" style="font-size: 0.8125rem;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Agent配置 -->
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settingsBasic.agentConfig">Agent 配置</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="agent-max-iterations" data-i18n="settingsBasic.maxIterations">最大迭代次数</label>
+                                            <input type="number" id="agent-max-iterations" min="1" data-i18n="settingsBasic.iterationsPlaceholder" data-i18n-attr="placeholder" placeholder="30" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="agent-tool-wait-timeout-seconds" data-i18n="settingsBasic.toolWaitTimeoutSeconds">外部 MCP 单轮等待秒数</label>
+                                            <input type="number" id="agent-tool-wait-timeout-seconds" min="0" step="1" placeholder="60" />
+                                            <small class="form-hint" data-i18n="settingsBasic.toolWaitTimeoutSecondsHint">Agent 等待工具的单轮上限；到时返回 execution_id，worker 继续后台执行，可用 wait_tool_execution 继续等待。0 表示等到完成。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="agent-external-mcp-concurrency-server" data-i18n="settingsBasic.externalMcpConcurrencyServer">单 MCP 并发上限</label>
+                                            <input type="number" id="agent-external-mcp-concurrency-server" min="-1" step="1" placeholder="2" />
+                                            <small class="form-hint" data-i18n="settingsBasic.externalMcpConcurrencyServerHint">每个外部 MCP server 同时运行的工具数；0 使用默认 2，-1 不限制。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="agent-external-mcp-concurrency-total" data-i18n="settingsBasic.externalMcpConcurrencyTotal">外部 MCP 全局并发上限</label>
+                                            <input type="number" id="agent-external-mcp-concurrency-total" min="-1" step="1" placeholder="16" />
+                                            <small class="form-hint" data-i18n="settingsBasic.externalMcpConcurrencyTotalHint">所有外部 MCP 工具的总并发；0 使用默认 16，-1 不限制。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="agent-external-mcp-circuit-threshold" data-i18n="settingsBasic.externalMcpCircuitThreshold">MCP 熔断失败阈值</label>
+                                            <input type="number" id="agent-external-mcp-circuit-threshold" min="-1" step="1" placeholder="3" />
+                                            <small class="form-hint" data-i18n="settingsBasic.externalMcpCircuitThresholdHint">同一 MCP server 连续失败达到阈值后临时熔断；0 使用默认 3，-1 关闭熔断。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="agent-external-mcp-circuit-cooldown" data-i18n="settingsBasic.externalMcpCircuitCooldown">MCP 熔断冷却秒数</label>
+                                            <input type="number" id="agent-external-mcp-circuit-cooldown" min="0" step="1" placeholder="60" />
+                                            <small class="form-hint" data-i18n="settingsBasic.externalMcpCircuitCooldownHint">server 熔断后的等待时间；0 使用默认 60 秒。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="multi-agent-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settingsBasic.enableMultiAgent">启用 Eino 多代理</span>
+                                            </label>
+                                            <small class="form-hint" data-i18n="settingsBasic.enableMultiAgentHint">开启后对话页可选「多代理」模式；子代理在 config.yaml 的 multi_agent.sub_agents 或 agents 目录中配置。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="multi-agent-pe-loop" data-i18n="settingsBasic.multiAgentPeLoop">plan_execute 外层循环上限</label>
+                                            <input type="number" id="multi-agent-pe-loop" min="0" step="1" value="0" data-i18n="settingsBasic.multiAgentPeLoopPlaceholder" data-i18n-attr="placeholder" placeholder="0 表示 Eino 默认 10" />
+                                            <small class="form-hint" data-i18n="settingsBasic.multiAgentPeLoopHint">仅 orchestration=plan_execute 时有效；execute 与 replan 之间的最大轮次。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="multi-agent-robot-mode" data-i18n="settingsBasic.multiAgentRobotMode">机器人默认对话模式</label>
+                                            <select id="multi-agent-robot-mode" class="form-select">
+                                                <option value="eino_single" data-i18n="chat.agentModeEinoSingle">Eino 单代理（ADK）</option>
+                                                <option value="deep" data-i18n="chat.agentModeDeep">Deep（DeepAgent）</option>
+                                                <option value="plan_execute" data-i18n="chat.agentModePlanExecuteLabel">Plan-Execute</option>
+                                                <option value="supervisor" data-i18n="chat.agentModeSupervisorLabel">Supervisor</option>
+                                            </select>
+                                            <small class="form-hint" data-i18n="settingsBasic.multiAgentRobotModeHint">企业微信 / 钉钉 / 飞书机器人每条消息使用的执行模式；Deep / Plan-Execute / Supervisor 需启用多代理。</small>
+                                        </div>
+                                        <details class="settings-advanced-block">
+                                            <summary data-i18n="settingsBasic.agentAdvanced">高级设置</summary>
+                                            <div class="settings-form" style="margin-top: 0.75rem;">
+                                                <div class="form-group">
+                                                    <label for="eino-model-retry-max-retries" data-i18n="settingsBasic.einoModelRetryMaxRetries">Eino 原生模型最大重试次数</label>
+                                                    <input type="number" id="eino-model-retry-max-retries" min="0" step="1" placeholder="0" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.einoModelRetryMaxRetriesHint">ChatModelAgent 原生 ModelRetry 次数；0 使用后端默认 4。用于 429/5xx/网络抖动和空模型输出。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="eino-model-retry-max-backoff-sec" data-i18n="settingsBasic.einoModelRetryMaxBackoffSec">Eino 原生模型最大退避秒数</label>
+                                                    <input type="number" id="eino-model-retry-max-backoff-sec" min="0" step="1" placeholder="0" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.einoModelRetryMaxBackoffSecHint">模型原生重试的指数退避上限；0 使用后端默认 30 秒。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="eino-model-failover-channels" data-i18n="settingsBasic.einoModelFailoverChannels">Eino 模型 Failover 备用通道</label>
+                                                    <textarea id="eino-model-failover-channels" rows="3" placeholder="backup-openai&#10;backup-claude" data-i18n="settingsBasic.einoModelFailoverChannelsPlaceholder" data-i18n-attr="placeholder"></textarea>
+                                                    <small class="form-hint" data-i18n="settingsBasic.einoModelFailoverChannelsHint">主通道原生重试耗尽后按顺序切换 ai.channels 中的通道 ID；每行一个，也支持逗号分隔。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="eino-model-failover-max-retries" data-i18n="settingsBasic.einoModelFailoverMaxRetries">Eino 模型 Failover 最大切换次数</label>
+                                                    <input type="number" id="eino-model-failover-max-retries" min="0" step="1" placeholder="0" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.einoModelFailoverMaxRetriesHint">0 表示尝试全部已配置备用通道；大于 0 时限制最多切换几个通道。</small>
+                                                </div>
+	                                                <div class="form-group">
+	                                                    <label for="summarization-user-ledger-max-runes" data-i18n="settingsBasic.userLedgerMaxRunes">用户原文账本总字符上限</label>
+	                                                    <input type="number" id="summarization-user-ledger-max-runes" min="0" step="1000" placeholder="96000" />
+	                                                    <small class="form-hint" data-i18n="settingsBasic.userLedgerMaxRunesHint">压缩后注入模型上下文的原始用户输入账本总上限；0 使用后端默认值。DB 原始消息不裁剪。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="summarization-user-ledger-entry-max-runes" data-i18n="settingsBasic.userLedgerEntryMaxRunes">单条用户原文字符上限</label>
+                                                    <input type="number" id="summarization-user-ledger-entry-max-runes" min="0" step="1000" placeholder="16000" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.userLedgerEntryMaxRunesHint">账本中单条用户消息的模型可见上限；0 使用后端默认值，不影响 DB 原文。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="latest-user-message-max-runes" data-i18n="settingsBasic.latestUserMaxRunes">最新用户输入字符上限</label>
+                                                    <input type="number" id="latest-user-message-max-runes" min="0" step="1000" placeholder="48000" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.latestUserMaxRunesHint">本轮最新 user 进入模型上下文的上限；超出时全文落盘，只注入预览。0 使用后端默认值。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="latest-user-message-head-runes" data-i18n="settingsBasic.latestUserHeadRunes">最新用户输入头部预览</label>
+                                                    <input type="number" id="latest-user-message-head-runes" min="0" step="1000" placeholder="24000" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.latestUserHeadRunesHint">超长最新 user 保留给模型看的头部字符数。</small>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="latest-user-message-tail-runes" data-i18n="settingsBasic.latestUserTailRunes">最新用户输入尾部预览</label>
+                                                    <input type="number" id="latest-user-message-tail-runes" min="0" step="1000" placeholder="24000" />
+                                                    <small class="form-hint" data-i18n="settingsBasic.latestUserTailRunesHint">超长最新 user 保留给模型看的尾部字符数。</small>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                                <div class="settings-actions">
+                                    <button class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- 人机协同 -->
+                            <div id="settings-section-hitl" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.hitl.title">人机协同</h3>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settings.hitl.approvalTitle">审批配置</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="hitl-default-reviewer" data-i18n="settings.hitl.defaultReviewer">全局默认审批方</label>
+                                            <select id="hitl-default-reviewer" class="form-select">
+                                                <option value="human" data-i18n="chat.hitlReviewerHuman">人工审批</option>
+                                                <option value="audit_agent" data-i18n="chat.hitlReviewerAgent">审计 Agent</option>
+                                            </select>
+                                            <small class="form-hint" data-i18n="settings.hitl.defaultReviewerHint">未选会话和新建会话默认使用该审批方；会话侧栏仍可临时覆盖。</small>
+                                        </div>
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settings.hitl.auditModelTitle">审计 Agent 模型</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-audit-backend" data-i18n="settings.hitl.auditBackend">审批引擎</label>
+                                            <select id="hitl-audit-backend" class="form-select">
+                                                <option value="openai" data-i18n="settings.hitl.auditBackendOpenAI">OpenAI 协议模型</option>
+                                                <option value="typesafe" data-i18n="settings.hitl.auditBackendTypeSafe">TypeSafe Jev</option>
+                                            </select>
+                                            <small class="form-hint" data-i18n="settings.hitl.auditBackendHint">二选一：OpenAI 兼容聊天模型按提示词输出 JSON；Jev 用结构化问题做放通/拦截，不能改参。</small>
+                                        </div>
+                                        <div class="form-group" id="hitl-audit-openai-provider-group">
+                                            <label for="hitl-audit-model-provider" data-i18n="settingsBasic.apiProvider">API 提供商</label>
+                                            <select id="hitl-audit-model-provider" class="form-select">
+                                                <option value="" data-i18n="settings.hitl.auditModelReuseMain">跟随主模型配置</option>
+                                                <option value="openai" data-i18n="settingsBasic.providerOpenAI">OpenAI / 兼容 OpenAI 协议</option>
+                                                <option value="claude" data-i18n="settingsBasic.providerClaude">Claude (Anthropic Messages API)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-audit-model-base-url">Base URL</label>
+                                            <input type="text" id="hitl-audit-model-base-url" data-i18n="settings.hitl.auditModelBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用主模型 Base URL" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-audit-model-api-key">API Key</label>
+                                            <input type="password" id="hitl-audit-model-api-key" data-i18n="settings.hitl.auditModelApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用主模型 API Key" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-audit-model-name" data-i18n="settings.hitl.auditModelName">审批模型</label>
+                                            <div class="model-pick-row">
+                                                <input type="text" id="hitl-audit-model-name" class="model-pick-input" data-i18n="settings.hitl.auditModelNamePlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用主模型；建议填写小模型" />
+                                                <select id="hitl-audit-model-select" class="model-pick-native" style="display: none;" aria-hidden="true" tabindex="-1">
+                                                    <option value="" disabled data-i18n="settingsBasic.modelsListSelectPlaceholder">请选择模型</option>
+                                                </select>
+                                                <a href="javascript:void(0)" id="fetch-hitl-audit-models-btn" class="model-pick-fetch-link" onclick="fetchModelList('hitlAudit')" data-i18n="settingsBasic.fetchModels">获取列表</a>
+                                            </div>
+                                            <small id="fetch-hitl-audit-models-hint" class="form-hint" style="display: none; font-size: 0.75rem; margin-top: 4px;"></small>
+                                            <span id="fetch-hitl-audit-models-result" style="font-size: 0.75rem; margin-top: 2px; display: block;"></span>
+                                            <small id="hitl-audit-model-openai-hint" class="form-hint" data-i18n="settings.hitl.auditModelHint">仅审计 Agent 审批时使用；人工审批不消耗模型。</small>
+                                            <small id="hitl-audit-model-typesafe-hint" class="form-hint" data-i18n="settings.hitl.auditModelTypeSafeHint" hidden>Jev 走 TypeSafe System One，不是 OpenAI 协议。API Key 必填，不复用主模型密钥；模型留空使用 jev-latest。审查编辑模式下 Jev 只做放通/拦截，不会改参。</small>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                                            <a href="javascript:void(0)" id="test-hitl-audit-model-btn" onclick="testHitlAuditModelConnection()" style="font-size: 0.8125rem; color: var(--accent-color, #3182ce); text-decoration: none; cursor: pointer; user-select: none;" data-i18n="settings.hitl.testAuditModel">测试审计模型</a>
+                                            <span id="test-hitl-audit-model-result" style="font-size: 0.8125rem;"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-retention-days" data-i18n="settings.hitl.retentionDays">已决策审计日志保留天数</label>
+                                            <input type="number" id="hitl-retention-days" min="0" step="1" placeholder="90" />
+                                            <small class="form-hint" data-i18n="settings.hitl.retentionDaysHint">0 表示不自动清理；留空使用默认 90 天。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-tool-whitelist" data-i18n="settings.hitl.toolWhitelist">免审批工具白名单</label>
+                                            <textarea id="hitl-tool-whitelist" rows="4" spellcheck="false" autocomplete="off" data-i18n="settings.hitl.toolWhitelistPlaceholder" data-i18n-attr="placeholder" placeholder="read_file, list_dir, glob"></textarea>
+                                            <small class="form-hint" data-i18n="settings.hitl.toolWhitelistHint">每行一个或逗号分隔；白名单工具不会触发人机协同审批。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settings.hitl.auditAgentTitle">审计 Agent 策略</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="hitl-audit-agent-prompt-settings" data-i18n="settings.hitl.auditPromptApproval">审批模式提示词</label>
+                                            <textarea id="hitl-audit-agent-prompt-settings" rows="10" spellcheck="false" autocomplete="off"></textarea>
+                                            <small class="form-hint" data-i18n="settings.hitl.auditPromptHint">留空时使用后端内置默认策略。</small>
+                                            <small id="hitl-audit-prompt-typesafe-hint" class="form-hint" data-i18n="settings.hitl.auditPromptTypeSafeHint" hidden>当前审批引擎是 TypeSafe Jev：会读取本页/人机协同页的自定义策略并编成结构化问题；内置破坏性规则仍是硬底线。Jev 不能改参。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hitl-audit-agent-prompt-review-edit-settings" data-i18n="settings.hitl.auditPromptReviewEdit">审查编辑模式提示词</label>
+                                            <textarea id="hitl-audit-agent-prompt-review-edit-settings" rows="10" spellcheck="false" autocomplete="off"></textarea>
+                                            <small class="form-hint" data-i18n="settings.hitl.auditPromptReviewEditHint">审查编辑模式可通过 editedArguments 收窄参数后放行。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-actions">
+                                    <button type="button" class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- 资产管理设置 -->
+                            <div id="settings-section-infocollect" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.infocollect.title">资产管理</h3>
+                                </div>
+
+                                <!-- FOFA配置 -->
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settingsBasic.fofaConfig">FOFA 配置</h4>
+                                    <p class="form-hint" data-i18n="settingsBasic.fofaConfigHint">用于资产发现与导入，仅需配置 API Key。</p>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="fofa-base-url">Base URL</label>
+                                            <input type="text" id="fofa-base-url" data-i18n="settingsBasic.fofaBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="https://fofa.info/api/v1/search/all（可选）" />
+                                            <small class="form-hint" data-i18n="settingsBasic.fofaBaseUrlHint">留空则使用默认地址。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fofa-api-key">API Key</label>
+                                            <input type="password" id="fofa-api-key" data-i18n="settingsBasic.fofaApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="输入 FOFA API Key" autocomplete="off" />
+                                            <small class="form-hint" data-i18n="settingsBasic.fofaApiKeyHint">仅保存在服务器配置中（`config.yaml`）。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4>ZoomEye 配置</h4>
+                                    <p class="form-hint">用于信息收集页调用 ZoomEye API；也可设置环境变量 ZOOMEYE_API_KEY。</p>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="zoomeye-base-url">Base URL</label>
+                                            <input type="text" id="zoomeye-base-url" placeholder="https://api.zoomeye.ai/v2/search（可选）" />
+                                            <small class="form-hint">留空则使用默认地址。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="zoomeye-api-key">API Key</label>
+                                            <input type="password" id="zoomeye-api-key" placeholder="输入 ZoomEye API Key" autocomplete="off" />
+                                            <small class="form-hint">仅保存在服务器配置中（config.yaml）。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4>Quake 配置</h4>
+                                    <p class="form-hint">用于信息收集页调用 360 Quake API；也可设置环境变量 QUAKE_API_KEY。</p>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="quake-base-url">Base URL</label>
+                                            <input type="text" id="quake-base-url" placeholder="https://quake.360.net/api/v3/search/quake_service（可选）" />
+                                            <small class="form-hint">留空则使用默认地址。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="quake-api-key">API Token</label>
+                                            <input type="password" id="quake-api-key" placeholder="输入 Quake API Token" autocomplete="off" />
+                                            <small class="form-hint">仅保存在服务器配置中（config.yaml）。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4>Shodan 配置</h4>
+                                    <p class="form-hint">用于信息收集页调用 Shodan API；也可设置环境变量 SHODAN_API_KEY。</p>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="shodan-base-url">Base URL</label>
+                                            <input type="text" id="shodan-base-url" placeholder="https://api.shodan.io（可选）" />
+                                            <small class="form-hint">留空则使用默认地址。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="shodan-api-key">API Key</label>
+                                            <input type="password" id="shodan-api-key" placeholder="输入 Shodan API Key" autocomplete="off" />
+                                            <small class="form-hint">仅保存在服务器配置中（config.yaml）。</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-actions">
+                                    <button type="button" class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- 知识库设置 -->
+                            <div id="settings-section-knowledge" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.knowledge.title">知识库设置</h3>
+                                </div>
+
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settingsBasic.knowledgeConfig">知识库配置</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="knowledge-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settingsBasic.enableKnowledge">启用知识检索功能</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-base-path" data-i18n="settingsBasic.knowledgeBasePath">知识库路径</label>
+                                            <input type="text" id="knowledge-base-path" data-i18n="settingsBasic.knowledgeBasePathPlaceholder" data-i18n-attr="placeholder" placeholder="knowledge_base" />
+                                            <small class="form-hint" data-i18n="settingsBasic.knowledgeBasePathHint">相对于配置文件所在目录的路径</small>
+                                        </div>
+
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settingsBasic.embeddingConfig">嵌入模型配置</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-embedding-provider" data-i18n="settingsBasic.provider">提供商</label>
+                                            <select id="knowledge-embedding-provider">
+                                                <option value="openai">OpenAI</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-embedding-base-url">Base URL</label>
+                                            <input type="text" id="knowledge-embedding-base-url" data-i18n="settingsBasic.embeddingBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="留空则使用OpenAI配置的base_url" />
+                                            <small class="form-hint" data-i18n="settingsBasic.embeddingBaseUrlPlaceholder">留空则使用OpenAI配置的base_url</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-embedding-api-key">API Key</label>
+                                            <input type="password" id="knowledge-embedding-api-key" data-i18n="settingsBasic.embeddingApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="留空则使用OpenAI配置的api_key" />
+                                            <small class="form-hint" data-i18n="settingsBasic.embeddingApiKeyPlaceholder">留空则使用OpenAI配置的api_key</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-embedding-model" data-i18n="settingsBasic.modelName">模型名称</label>
+                                            <div class="model-pick-row">
+                                                <input type="text" id="knowledge-embedding-model" class="model-pick-input" data-i18n="settingsBasic.embeddingModelPlaceholder" data-i18n-attr="placeholder" placeholder="text-embedding-v4" />
+                                                <select id="knowledge-embedding-model-select" class="model-pick-native" style="display: none;" aria-hidden="true" tabindex="-1">
+                                                    <option value="" disabled data-i18n="settingsBasic.modelsListSelectPlaceholder">请选择模型</option>
+                                                </select>
+                                                <a href="javascript:void(0)" id="fetch-knowledge-embedding-models-btn" class="model-pick-fetch-link" onclick="fetchModelList('knowledgeEmbedding')" data-i18n="settingsBasic.fetchModels">获取列表</a>
+                                            </div>
+                                            <small id="fetch-knowledge-embedding-models-hint" class="form-hint" style="display: none; font-size: 0.75rem; margin-top: 4px;"></small>
+                                            <span id="fetch-knowledge-embedding-models-result" style="font-size: 0.75rem; margin-top: 2px; display: block;"></span>
+                                        </div>
+
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settingsBasic.retrievalConfig">检索配置</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-retrieval-top-k" data-i18n="settingsBasic.topK">Top-K 结果数量</label>
+                                            <input type="number" id="knowledge-retrieval-top-k" min="1" max="20" data-i18n="settingsBasic.topKPlaceholder" data-i18n-attr="placeholder" placeholder="5" />
+                                            <small class="form-hint" data-i18n="settingsBasic.topKHint">检索返回的Top-K结果数量</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-retrieval-similarity-threshold" data-i18n="settingsBasic.similarityThreshold">相似度阈值</label>
+                                            <input type="number" id="knowledge-retrieval-similarity-threshold" min="0" max="1" step="0.1" data-i18n="settingsBasic.similarityPlaceholder" data-i18n-attr="placeholder" placeholder="0.7" />
+                                            <small class="form-hint" data-i18n="settingsBasic.similarityHint">相似度阈值（0-1），低于此值的结果将被过滤</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-retrieval-sub-index-filter" data-i18n="settingsBasic.subIndexFilter">子索引过滤（可选）</label>
+                                            <input type="text" id="knowledge-retrieval-sub-index-filter" data-i18n="settingsBasic.subIndexFilterPlaceholder" data-i18n-attr="placeholder" placeholder="与索引 sub_indexes 标签一致，如 prod" />
+                                            <small class="form-hint" data-i18n="settingsBasic.subIndexFilterHint">留空表示不过滤；非空时仅检索 sub_indexes 含该标签的向量行（未打标旧数据仍会命中）。</small>
+                                        </div>
+
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settingsBasic.ragPipelineHeader">RAG 管线（MultiQuery + Rerank）</h5>
+                                        </div>
+                                        <p class="form-hint" style="margin: 0 0 12px 0;" data-i18n="settingsBasic.ragPipelineHint">MultiQuery 与精排始终启用：LLM 改写多路检索 → 向量预取与融合 → HTTP 精排 → 去重与预算截断。</p>
+                                        <div class="form-group">
+                                            <label for="knowledge-multi-query-max-queries" data-i18n="settingsBasic.multiQueryMaxQueries">MultiQuery 改写变体上限</label>
+                                            <input type="number" id="knowledge-multi-query-max-queries" min="1" max="8" data-i18n="settingsBasic.multiQueryMaxQueriesPlaceholder" data-i18n-attr="placeholder" placeholder="4" />
+                                            <small class="form-hint" data-i18n="settingsBasic.multiQueryMaxQueriesHint">LLM 生成的检索变体数量上限（含原问语义覆盖）；建议 3~4，最大 8。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-rerank-provider" data-i18n="settingsBasic.rerankProvider">精排提供商</label>
+                                            <select id="knowledge-rerank-provider">
+                                                <option value="" data-i18n="settingsBasic.rerankProviderAuto">自动（按 Base URL 推断）</option>
+                                                <option value="dashscope">DashScope</option>
+                                                <option value="cohere" data-i18n="settingsBasic.rerankProviderCohere">Cohere 兼容 API</option>
+                                            </select>
+                                            <small class="form-hint" data-i18n="settingsBasic.rerankProviderHint">DashScope 使用 gte-rerank；其他兼容端点走 /v1/rerank。留空时按下方 Base URL 自动推断。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-rerank-model" data-i18n="settingsBasic.rerankModel">精排模型（可选）</label>
+                                            <input type="text" id="knowledge-rerank-model" data-i18n="settingsBasic.rerankModelPlaceholder" data-i18n-attr="placeholder" placeholder="留空：DashScope→gte-rerank，Cohere→rerank-multilingual-v3.0" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-rerank-base-url" data-i18n="settingsBasic.rerankBaseUrl">精排 Base URL（可选）</label>
+                                            <input type="text" id="knowledge-rerank-base-url" data-i18n="settingsBasic.rerankBaseUrlPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用嵌入 / OpenAI 的 base_url" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-rerank-api-key" data-i18n="settingsBasic.rerankApiKey">精排 API Key（可选）</label>
+                                            <input type="password" id="knowledge-rerank-api-key" data-i18n="settingsBasic.rerankApiKeyPlaceholder" data-i18n-attr="placeholder" placeholder="留空则复用嵌入 / OpenAI 的 api_key" />
+                                            <small class="form-hint" data-i18n="settingsBasic.rerankApiKeyHint">精排失败时自动降级为融合排序，检索仍可用。</small>
+                                        </div>
+
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settingsBasic.postRetrieveHeader">检索后处理（去重 / 预算）</h5>
+                                        </div>
+                                        <p class="form-hint" style="margin: 0 0 12px 0;" data-i18n="settingsBasic.postRetrieveDedupeAuto">检索结果会自动按正文规范化去重（合并仅空白不同的重复片段），无需配置。</p>
+                                        <div class="form-group">
+                                            <label for="knowledge-post-retrieve-prefetch-top-k" data-i18n="settingsBasic.prefetchTopK">预取候选数（向量阶段）</label>
+                                            <input type="number" id="knowledge-post-retrieve-prefetch-top-k" min="0" max="200" data-i18n="settingsBasic.prefetchTopKPlaceholder" data-i18n-attr="placeholder" placeholder="20" />
+                                            <small class="form-hint" data-i18n="settingsBasic.prefetchTopKHint">每条 MultiQuery 变体的向量候选数；0 表示内置 max(top_k×4, 20)（上限 200）。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-post-retrieve-max-chars" data-i18n="settingsBasic.maxContextChars">返回内容最大字符数（Unicode）</label>
+                                            <input type="number" id="knowledge-post-retrieve-max-chars" min="0" max="1000000" data-i18n="settingsBasic.maxContextCharsPlaceholder" data-i18n-attr="placeholder" placeholder="0" />
+                                            <small class="form-hint" data-i18n="settingsBasic.maxContextCharsHint">0 表示不限制；按检索顺序整段保留 chunk，超出则丢弃后续。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-post-retrieve-max-tokens" data-i18n="settingsBasic.maxContextTokens">返回内容最大 Token 数</label>
+                                            <input type="number" id="knowledge-post-retrieve-max-tokens" min="0" max="1000000" data-i18n="settingsBasic.maxContextTokensPlaceholder" data-i18n-attr="placeholder" placeholder="0" />
+                                            <small class="form-hint" data-i18n="settingsBasic.maxContextTokensHint">0 表示不限制；tiktoken 估算（与嵌入模型名一致，失败则用 cl100k_base）。</small>
+                                        </div>
+
+                                        <div class="settings-subsection-header">
+                                            <h5 data-i18n="settingsBasic.indexConfig">索引配置</h5>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-chunk-strategy" data-i18n="settingsBasic.chunkStrategy">分块策略</label>
+                                            <select id="knowledge-indexing-chunk-strategy">
+                                                <option value="markdown_then_recursive" data-i18n="settingsBasic.chunkStrategyMarkdownRecursive">Markdown 标题切分后递归（推荐）</option>
+                                                <option value="recursive" data-i18n="settingsBasic.chunkStrategyRecursive">仅递归切分</option>
+                                            </select>
+                                            <small class="form-hint" data-i18n="settingsBasic.chunkStrategyHint">与 Eino 官方索引链一致：技术文档建议 Markdown 标题 + 递归；纯文本可仅用递归。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-request-timeout" data-i18n="settingsBasic.requestTimeoutSeconds">嵌入 HTTP 超时（秒）</label>
+                                            <input type="number" id="knowledge-indexing-request-timeout" min="0" max="600" data-i18n="settingsBasic.requestTimeoutPlaceholder" data-i18n-attr="placeholder" placeholder="120" />
+                                            <small class="form-hint" data-i18n="settingsBasic.requestTimeoutHint">0 表示使用默认 120 秒；与 OpenAI 嵌入客户端一致。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-batch-size" data-i18n="settingsBasic.batchSize">嵌入批大小</label>
+                                            <input type="number" id="knowledge-indexing-batch-size" min="1" max="256" data-i18n="settingsBasic.batchSizePlaceholder" data-i18n-attr="placeholder" placeholder="64" />
+                                            <small class="form-hint" data-i18n="settingsBasic.batchSizeHint">单次请求嵌入的文本条数上限（SQLite 索引写入分批）。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="knowledge-indexing-prefer-source-file" />
+                                                <span data-i18n="settingsBasic.preferSourceFile">索引时优先从磁盘源文件读取（Eino FileLoader）</span>
+                                            </label>
+                                            <small class="form-hint" data-i18n="settingsBasic.preferSourceFileHint">开启后以 file_path 为准；读取失败时回退数据库中的 content。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-sub-indexes" data-i18n="settingsBasic.subIndexes">Eino 子索引（逗号分隔）</label>
+                                            <input type="text" id="knowledge-indexing-sub-indexes" data-i18n="settingsBasic.subIndexesPlaceholder" data-i18n-attr="placeholder" placeholder="例如: prod, knowledge" />
+                                            <small class="form-hint" data-i18n="settingsBasic.subIndexesHint">传入 indexer.WithSubIndexes，写入向量行的 sub_indexes 字段（逻辑分区标记）。</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-chunk-size" data-i18n="settingsBasic.chunkSize">分块大小（Chunk Size）</label>
+                                            <input type="number" id="knowledge-indexing-chunk-size" min="128" max="4096" data-i18n="settingsBasic.chunkSizePlaceholder" data-i18n-attr="placeholder" placeholder="512" />
+                                            <small class="form-hint" data-i18n="settingsBasic.chunkSizeHint">每个块的最大 token 数（默认 512），长文本会被分割成多个块</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-chunk-overlap" data-i18n="settingsBasic.chunkOverlap">分块重叠（Chunk Overlap）</label>
+                                            <input type="number" id="knowledge-indexing-chunk-overlap" min="0" max="512" data-i18n="settingsBasic.chunkOverlapPlaceholder" data-i18n-attr="placeholder" placeholder="50" />
+                                            <small class="form-hint" data-i18n="settingsBasic.chunkOverlapHint">块之间的重叠 token 数（默认 50），保持上下文连贯性</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-max-chunks-per-item" data-i18n="settingsBasic.maxChunksPerItem">单个知识项最大块数</label>
+                                            <input type="number" id="knowledge-indexing-max-chunks-per-item" min="0" max="1000" data-i18n="settingsBasic.maxChunksPlaceholder" data-i18n-attr="placeholder" placeholder="0" />
+                                            <small class="form-hint" data-i18n="settingsBasic.maxChunksHint">单个知识项的最大块数量（0 表示不限制），防止单个文件消耗过多 API 配额</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-max-rpm" data-i18n="settingsBasic.maxRpm">每分钟最大请求数（Max RPM）</label>
+                                            <input type="number" id="knowledge-indexing-max-rpm" min="0" max="1000" data-i18n="settingsBasic.maxRpmPlaceholder" data-i18n-attr="placeholder" placeholder="0" />
+                                            <small class="form-hint" data-i18n="settingsBasic.maxRpmHint">每分钟最大请求数（默认 0 表示不限制），如 OpenAI 默认 200 RPM</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-rate-limit-delay-ms" data-i18n="settingsBasic.rateLimitDelay">请求间隔延迟（毫秒）</label>
+                                            <input type="number" id="knowledge-indexing-rate-limit-delay-ms" min="0" max="10000" data-i18n="settingsBasic.rateLimitPlaceholder" data-i18n-attr="placeholder" placeholder="300" />
+                                            <small class="form-hint" data-i18n="settingsBasic.rateLimitHint">请求间隔毫秒数（默认 300），用于避免 API 速率限制，设为 0 不限制</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-max-retries" data-i18n="settingsBasic.maxRetries">最大重试次数</label>
+                                            <input type="number" id="knowledge-indexing-max-retries" min="0" max="10" data-i18n="settingsBasic.maxRetriesPlaceholder" data-i18n-attr="placeholder" placeholder="3" />
+                                            <small class="form-hint" data-i18n="settingsBasic.maxRetriesHint">最大重试次数（默认 3），遇到速率限制或服务器错误时自动重试</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="knowledge-indexing-retry-delay-ms" data-i18n="settingsBasic.retryDelay">重试间隔（毫秒）</label>
+                                            <input type="number" id="knowledge-indexing-retry-delay-ms" min="0" max="10000" data-i18n="settingsBasic.retryDelayPlaceholder" data-i18n-attr="placeholder" placeholder="1000" />
+                                            <small class="form-hint" data-i18n="settingsBasic.retryDelayHint">重试间隔毫秒数（默认 1000），每次重试会递增延迟</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-actions">
+                                    <button class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- C2 总开关 -->
+                            <div id="settings-section-c2" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.c2.title">C2 设置</h3>
+                                </div>
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settings.c2.sectionTitle">内置 C2</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="c2-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.c2.enableLabel">启用内置 C2（监听器、会话、Payload、MCP 工具等）</span>
+                                            </label>
+                                            <small class="form-hint" data-i18n="settings.c2.enableHint">关闭后不再启动监听器、不注册 C2 相关 MCP 工具，侧栏 C2 入口将隐藏；仅本机使用对话与知识库时可关闭以节省资源。</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="settings-actions">
+                                    <button class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- 机器人设置 -->
+                            <div id="settings-section-robots" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.robots.title">机器人设置</h3>
+                                    <p class="settings-description" data-i18n="settings.robots.description">配置企业微信、钉钉、飞书等机器人，在手机端直接与 CyberStrikeAI 对话，无需在服务器上打开网页。</p>
+                                </div>
+
+                                <div class="robot-manager">
+                                    <div class="robot-manager-toolbar">
+                                        <div>
+                                            <h4 data-i18n="settings.robots.managerTitle">机器人管理</h4>
+                                            <p data-i18n="settings.robots.managerDesc">先选择机器人类型，再进入对应配置；已配置的平台会显示连接状态。</p>
+                                        </div>
+                                        <button type="button" class="btn-primary" data-require-permission="robot:write" onclick="openRobotCreateModal()" data-i18n="settings.robots.newBot">新建机器人</button>
+                                    </div>
+
+                                    <div class="robot-card-grid">
+                                        <button type="button" class="robot-card" data-robot-card="wechat" data-require-permission="robot:write" onclick="openRobotEditor('wechat')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.wechat.title">微信 / iLink</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.wechat.subtitle">扫码绑定个人微信，在手机端直接与 CyberStrikeAI 对话</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-wechat-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="wecom" data-require-permission="robot:write" onclick="openRobotEditor('wecom')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.wecom.title">企业微信</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.wecom.subtitle">HTTP 回调模式，适合企业内部应用机器人</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-wecom-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="dingtalk" data-require-permission="robot:write" onclick="openRobotEditor('dingtalk')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.dingtalk.title">钉钉</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.dingtalk.subtitle">企业内部应用机器人，使用 Stream 长连接</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-dingtalk-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="lark" data-require-permission="robot:write" onclick="openRobotEditor('lark')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.lark.title">飞书 (Lark)</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.lark.subtitle">飞书企业应用机器人，支持单聊与群聊 @</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-lark-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="telegram" data-require-permission="robot:write" onclick="openRobotEditor('telegram')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.telegram.title">Telegram</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.telegram.subtitle">Bot API 长轮询，私聊与群聊 @</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-telegram-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="slack" data-require-permission="robot:write" onclick="openRobotEditor('slack')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.slack.title">Slack</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.slack.subtitle">Socket Mode，无需公网回调</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-slack-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="discord" data-require-permission="robot:write" onclick="openRobotEditor('discord')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.discord.title">Discord</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.discord.subtitle">Gateway WebSocket，私聊与服务器 @</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-discord-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                        <button type="button" class="robot-card" data-robot-card="qq" data-require-permission="robot:write" onclick="openRobotEditor('qq')">
+                                            <span class="robot-card-main">
+                                                <span class="robot-card-title" data-i18n="settings.robots.qq.title">QQ 机器人</span>
+                                                <span class="robot-card-desc" data-i18n="settings.robots.qq.subtitle">QQ 开放平台 WebSocket，C2C 与群 @</span>
+                                            </span>
+                                            <span class="robot-card-meta">
+                                                <span id="robot-card-qq-status" class="robot-status-pill robot-status-pill--idle" data-i18n="settings.robots.statusNotConfigured">未配置</span>
+                                                <span class="robot-card-action" data-i18n="settings.robots.configure">配置</span>
+                                            </span>
+                                        </button>
+                                    </div>
+
+									<div class="vulnerability-alert-settings" id="vulnerability-alert-settings">
+										<div class="vulnerability-alert-header">
+											<div class="vulnerability-alert-copy">
+												<span class="vulnerability-alert-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 21h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+												<div>
+													<strong data-i18n="vulnerabilityPage.alertTitle">机器人漏洞提醒</strong>
+													<span data-i18n="vulnerabilityPage.alertDescription">按严重级别将新发现的漏洞推送至当前账号绑定的机器人。</span>
+												</div>
+											</div>
+											<label class="vulnerability-alert-switch">
+												<input type="checkbox" id="vulnerability-alert-enabled" onchange="saveVulnerabilityAlertSubscription()" />
+												<span class="vulnerability-alert-switch-track" aria-hidden="true"></span>
+												<span class="vulnerability-alert-switch-label" data-i18n="vulnerabilityPage.alertEnabled">启用提醒</span>
+											</label>
+										</div>
+										<div class="vulnerability-alert-controls">
+											<label class="vulnerability-alert-field" for="vulnerability-alert-min-severity">
+												<span data-i18n="vulnerabilityPage.alertMinimum">最低级别</span>
+												<select id="vulnerability-alert-min-severity" style="width: 168px; min-width: 168px" onchange="saveVulnerabilityAlertSubscription()">
+													<option value="critical" data-i18n="dashboard.severityCritical">严重</option>
+													<option value="high" data-i18n="dashboard.severityHigh">高危</option>
+													<option value="medium" data-i18n="dashboard.severityMedium">中危</option>
+													<option value="low" data-i18n="dashboard.severityLow">低危</option>
+													<option value="info" data-i18n="dashboard.severityInfo">信息</option>
+												</select>
+											</label>
+											<div class="vulnerability-alert-binding-row">
+												<span id="vulnerability-alert-binding-hint" data-i18n="vulnerabilityPage.alertHint">发现符合级别的新漏洞后，通过已绑定机器人账号推送。</span>
+												<button type="button" class="vulnerability-alert-bind-button" id="vulnerability-alert-bind-button" onclick="openRobotAccountBinding()" hidden data-i18n="vulnerabilityPage.alertBindAction">绑定接收账号</button>
+											</div>
+										</div>
+									</div>
+                                </div>
+
+                                <div id="robot-editor-empty" class="robot-editor-empty">
+                                    <h4 data-i18n="settings.robots.emptyTitle">选择一个机器人开始配置</h4>
+                                    <p data-i18n="settings.robots.emptyDesc">从上方列表点击已有平台，或点击“新建机器人”按类型创建。</p>
+                                </div>
+
+                                <div id="robot-auth-policy-panel" class="settings-subsection" hidden>
+                                    <h4>业务鉴权策略</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="robot-auth-mode">鉴权模式</label>
+                                            <select id="robot-auth-mode" class="form-select" onchange="onRobotAuthModeChange()">
+                                                <option value="user_binding">逐用户绑定（多人机器人推荐）</option>
+                                                <option value="service_account">专用服务账号（仅白名单发送者）</option>
+                                            </select>
+                                            <small class="form-hint">平台验签负责确认消息来源；这里决定消息最终使用哪个 RBAC 身份。</small>
+                                        </div>
+                                        <div id="robot-service-account-fields" hidden>
+                                            <div class="form-group">
+                                                <label for="robot-service-user-id">服务账号 RBAC User ID</label>
+                                                <input type="text" id="robot-service-user-id" placeholder="例如 admin 或专用服务账号 User ID" autocomplete="off" oninput="updateRobotServiceAccountWarning()" />
+                                                <small id="robot-service-admin-warning" class="form-hint robot-service-admin-warning" hidden>当前使用 admin：白名单发送者将拥有完整平台权限，请仅添加你完全信任的账号。</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="robot-allowed-external-users">允许的平台发送者 ID</label>
+                                                <textarea id="robot-allowed-external-users" rows="4" placeholder="每行一个；在机器人中发送“身份”或 whoami 获取"></textarea>
+                                                <small class="form-hint">不支持 * 通配符。服务账号模式只有这里列出的真实发送者可以执行。</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 微信 / iLink -->
+                                <div class="settings-subsection robot-editor-panel robot-wechat-card" id="robot-wechat-subsection" data-robot-editor="wechat" hidden>
+                                    <div class="robot-wechat-header">
+                                        <div class="robot-wechat-header-text">
+                                            <h4 data-i18n="settings.robots.wechat.title">微信 / iLink</h4>
+                                            <p class="robot-wechat-subtitle" data-i18n="settings.robots.wechat.subtitle">扫码绑定个人微信，在手机端直接与 CyberStrikeAI 对话</p>
+                                        </div>
+                                        <span id="robot-wechat-status-badge" class="robot-wechat-badge robot-wechat-badge--idle" data-i18n="settings.robots.wechat.statusIdle">未绑定</span>
+                                    </div>
+                                    <div class="settings-form robot-wechat-form">
+                                        <div class="robot-wechat-toolbar">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-wechat-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.wechat.enabled">启用微信机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="robot-wechat-action-row">
+                                            <button type="button" class="btn-primary" data-require-permission="robot:write" id="robot-wechat-bind-btn" onclick="startWechatRobotBind()" data-i18n="settings.robots.wechat.bindButton">生成二维码并绑定</button>
+                                            <p class="robot-wechat-hint" id="robot-wechat-bind-hint" data-i18n="settings.robots.wechat.bindHint">用微信扫码确认后会自动保存并启用。</p>
+                                        </div>
+                                        <div id="robot-wechat-bound-flash" class="robot-wechat-bound-flash" hidden role="status">
+                                            <span class="robot-wechat-bound-flash-icon" aria-hidden="true">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                            </span>
+                                            <span id="robot-wechat-bound-flash-text" data-i18n="settings.robots.wechat.boundSuccess">绑定成功，微信机器人已启用。</span>
+                                        </div>
+                                        <p id="robot-wechat-bound-summary" class="robot-wechat-bound-summary" hidden></p>
+                                        <div id="robot-wechat-qr-wrap" class="robot-wechat-panel" hidden>
+                                            <div id="robot-wechat-bound-panel" class="robot-wechat-bound-panel" hidden>
+                                                <div class="robot-wechat-bound-icon" aria-hidden="true">
+                                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                </div>
+                                                <p class="robot-wechat-bound-msg" data-i18n="settings.robots.wechat.boundSuccess">绑定成功，微信机器人已启用</p>
+                                                <p id="robot-wechat-bound-id" class="robot-wechat-bound-id" hidden></p>
+                                            </div>
+                                            <div id="robot-wechat-scan-panel" class="robot-wechat-scan-panel" hidden>
+                                            <div id="robot-wechat-qr-loading" class="robot-wechat-qr-loading" hidden data-i18n="settings.robots.wechat.qrLoading">正在生成二维码…</div>
+                                            <img id="robot-wechat-qr-img" class="robot-wechat-qr-img" alt="" width="220" height="220" hidden />
+                                            <p class="robot-wechat-qr-fallback">
+                                                <a id="robot-wechat-qr-link" href="#" target="_blank" rel="noopener noreferrer" hidden data-i18n="settings.robots.wechat.openLink">无法显示二维码？点击用手机微信打开链接</a>
+                                            </p>
+                                            <p id="robot-wechat-qr-status" class="robot-wechat-qr-status"></p>
+                                            <div id="robot-wechat-verify-wrap" class="robot-wechat-verify-wrap" hidden>
+                                                <label for="robot-wechat-verify-code" data-i18n="settings.robots.wechat.verifyCodeLabel">手机显示的数字（仅部分账号需要）</label>
+                                                <div class="robot-wechat-verify-row">
+                                                    <input type="text" id="robot-wechat-verify-code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="000000" />
+                                                    <button type="button" class="btn-primary btn-sm" data-require-permission="robot:write" onclick="submitWechatVerifyCode()" data-i18n="settings.robots.wechat.verifyCodeSubmit">提交</button>
+                                                </div>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <details class="settings-collapsible robot-wechat-advanced" id="robot-wechat-advanced">
+                                            <summary data-i18n="settings.robots.wechat.advanced">高级设置</summary>
+                                            <div class="form-group">
+                                                <label for="robot-wechat-base-url" data-i18n="settings.robots.wechat.baseUrl">API Base URL</label>
+                                                <input type="text" id="robot-wechat-base-url" placeholder="https://ilinkai.weixin.qq.com" autocomplete="off" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="robot-wechat-bot-type" data-i18n="settings.robots.wechat.botType">Bot Type</label>
+                                                <input type="text" id="robot-wechat-bot-type" placeholder="3" autocomplete="off" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="robot-wechat-bot-agent" data-i18n="settings.robots.wechat.botAgent">Bot Agent</label>
+                                                <input type="text" id="robot-wechat-bot-agent" placeholder="CyberStrikeAI/1.0" autocomplete="off" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="robot-wechat-ilink-bot-id" data-i18n="settings.robots.wechat.ilinkBotId">iLink Bot ID（绑定后自动填充）</label>
+                                                <input type="text" id="robot-wechat-ilink-bot-id" readonly autocomplete="off" />
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+
+                                <!-- 企业微信 -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="wecom" hidden>
+                                    <h4 data-i18n="settings.robots.wecom.title">企业微信</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-wecom-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.wecom.enabled">启用企业微信机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-wecom-token" data-i18n="settings.robots.wecom.token">Token</label>
+                                            <input type="text" id="robot-wecom-token" data-i18n="settings.robots.wecom.tokenPlaceholder" data-i18n-attr="placeholder" placeholder="Token" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-wecom-encoding-aes-key" data-i18n="settings.robots.wecom.encodingAesKey">EncodingAESKey</label>
+                                            <input type="text" id="robot-wecom-encoding-aes-key" data-i18n="settings.robots.wecom.encodingAesKeyPlaceholder" data-i18n-attr="placeholder" placeholder="EncodingAESKey（明文模式可留空）" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-wecom-corp-id" data-i18n="settings.robots.wecom.corpId">CorpID</label>
+                                            <input type="text" id="robot-wecom-corp-id" data-i18n="settings.robots.wecom.corpIdPlaceholder" data-i18n-attr="placeholder" placeholder="企业 ID" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-wecom-secret" data-i18n="settings.robots.wecom.secret">Secret</label>
+                                            <input type="password" id="robot-wecom-secret" data-i18n="settings.robots.wecom.secretPlaceholder" data-i18n-attr="placeholder" placeholder="应用 Secret" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-wecom-agent-id" data-i18n="settings.robots.wecom.agentId">AgentID</label>
+                                            <input type="number" id="robot-wecom-agent-id" data-i18n="settings.robots.wecom.agentIdPlaceholder" data-i18n-attr="placeholder" placeholder="应用 AgentId" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 钉钉 -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="dingtalk" hidden>
+                                    <h4 data-i18n="settings.robots.dingtalk.title">钉钉</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-dingtalk-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.dingtalk.enabled">启用钉钉机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-dingtalk-client-id" data-i18n="settings.robots.dingtalk.clientIdLabel">Client ID (AppKey)</label>
+                                            <input type="text" id="robot-dingtalk-client-id" data-i18n="settings.robots.dingtalk.clientIdPlaceholder" data-i18n-attr="placeholder" placeholder="钉钉应用 AppKey" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-dingtalk-client-secret" data-i18n="settings.robots.dingtalk.clientSecretLabel">Client Secret</label>
+                                            <input type="password" id="robot-dingtalk-client-secret" data-i18n="settings.robots.dingtalk.clientSecretPlaceholder" data-i18n-attr="placeholder" placeholder="钉钉应用 Secret" autocomplete="off" />
+                                            <small class="form-hint" data-i18n="settings.robots.dingtalk.streamHint">需开启机器人能力并配置流式接入</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 飞书 -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="lark" hidden>
+                                    <h4 data-i18n="settings.robots.lark.title">飞书 (Lark)</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-lark-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.lark.enabled">启用飞书机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-lark-app-id" data-i18n="settings.robots.lark.appIdLabel">App ID</label>
+                                            <input type="text" id="robot-lark-app-id" data-i18n="settings.robots.lark.appIdPlaceholder" data-i18n-attr="placeholder" placeholder="飞书应用 App ID" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-lark-app-secret" data-i18n="settings.robots.lark.appSecretLabel">App Secret</label>
+                                            <input type="password" id="robot-lark-app-secret" data-i18n="settings.robots.lark.appSecretPlaceholder" data-i18n-attr="placeholder" placeholder="飞书应用 App Secret" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-lark-verify-token" data-i18n="settings.robots.lark.verifyTokenLabel">Verify Token（可选）</label>
+                                            <input type="text" id="robot-lark-verify-token" data-i18n="settings.robots.lark.verifyTokenPlaceholder" data-i18n-attr="placeholder" placeholder="事件订阅 Verification Token" autocomplete="off" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Telegram -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="telegram" hidden>
+                                    <h4 data-i18n="settings.robots.telegram.title">Telegram</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-telegram-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.telegram.enabled">启用 Telegram 机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-telegram-bot-token" data-i18n="settings.robots.telegram.botToken">Bot Token</label>
+                                            <input type="password" id="robot-telegram-bot-token" autocomplete="off" placeholder="从 @BotFather 获取" />
+                                            <small class="form-hint" data-i18n="settings.robots.telegram.botTokenHint">通过 getUpdates 长轮询收消息，无需公网回调</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-telegram-bot-username" data-i18n="settings.robots.telegram.botUsername">Bot Username（可选）</label>
+                                            <input type="text" id="robot-telegram-bot-username" autocomplete="off" placeholder="不含 @，留空则自动 getMe" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-telegram-allow-group" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.telegram.allowGroup">允许群聊（仅响应 @ 机器人）</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slack -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="slack" hidden>
+                                    <h4 data-i18n="settings.robots.slack.title">Slack</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-slack-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.slack.enabled">启用 Slack 机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-slack-bot-token" data-i18n="settings.robots.slack.botToken">Bot Token (xoxb-)</label>
+                                            <input type="password" id="robot-slack-bot-token" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-slack-app-token" data-i18n="settings.robots.slack.appToken">App-Level Token (xapp-)</label>
+                                            <input type="password" id="robot-slack-app-token" autocomplete="off" />
+                                            <small class="form-hint" data-i18n="settings.robots.slack.appTokenHint">需 connections:write 权限，用于 Socket Mode</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Discord -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="discord" hidden>
+                                    <h4 data-i18n="settings.robots.discord.title">Discord</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-discord-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.discord.enabled">启用 Discord 机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-discord-bot-token" data-i18n="settings.robots.discord.botToken">Bot Token</label>
+                                            <input type="password" id="robot-discord-bot-token" autocomplete="off" />
+                                            <small class="form-hint" data-i18n="settings.robots.discord.botTokenHint">开发者门户创建 Bot，开启 Message Content Intent</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-discord-allow-guild" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.discord.allowGuild">允许服务器频道（仅响应 @ 机器人）</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- QQ -->
+                                <div class="settings-subsection robot-editor-panel" data-robot-editor="qq" hidden>
+                                    <h4 data-i18n="settings.robots.qq.title">QQ 机器人</h4>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-qq-enabled" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.qq.enabled">启用 QQ 机器人</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-qq-app-id" data-i18n="settings.robots.qq.appId">App ID</label>
+                                            <input type="text" id="robot-qq-app-id" autocomplete="off" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="robot-qq-client-secret" data-i18n="settings.robots.qq.clientSecret">Client Secret</label>
+                                            <input type="password" id="robot-qq-client-secret" autocomplete="off" />
+                                            <small class="form-hint" data-i18n="settings.robots.qq.secretHint">从 QQ 机器人开放平台获取；上线前可勾选沙箱</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="robot-qq-sandbox" class="modern-checkbox" />
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text" data-i18n="settings.robots.qq.sandbox">沙箱环境</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="robot-create-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="robot-create-title">
+                                    <div class="modal-content robot-create-modal-content">
+                                        <div class="modal-header">
+                                            <h2 id="robot-create-title" data-i18n="settings.robots.createTitle">新建机器人</h2>
+                                            <button type="button" class="modal-close" onclick="closeRobotCreateModal()" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="settings-description" data-i18n="settings.robots.createDesc">选择机器人类型后进入专属配置。当前版本每个平台支持一个内置机器人配置。</p>
+                                            <div class="robot-type-grid">
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('wechat')">
+                                                    <span data-i18n="settings.robots.wechat.title">微信 / iLink</span>
+                                                    <small data-i18n="settings.robots.wechat.subtitle">扫码绑定个人微信</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('wecom')">
+                                                    <span data-i18n="settings.robots.wecom.title">企业微信</span>
+                                                    <small data-i18n="settings.robots.wecom.subtitle">HTTP 回调模式</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('dingtalk')">
+                                                    <span data-i18n="settings.robots.dingtalk.title">钉钉</span>
+                                                    <small data-i18n="settings.robots.dingtalk.subtitle">Stream 长连接</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('lark')">
+                                                    <span data-i18n="settings.robots.lark.title">飞书 (Lark)</span>
+                                                    <small data-i18n="settings.robots.lark.subtitle">企业应用机器人</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('telegram')">
+                                                    <span data-i18n="settings.robots.telegram.title">Telegram</span>
+                                                    <small data-i18n="settings.robots.telegram.subtitle">Bot API 长轮询</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('slack')">
+                                                    <span data-i18n="settings.robots.slack.title">Slack</span>
+                                                    <small data-i18n="settings.robots.slack.subtitle">Socket Mode</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('discord')">
+                                                    <span data-i18n="settings.robots.discord.title">Discord</span>
+                                                    <small data-i18n="settings.robots.discord.subtitle">Gateway WebSocket</small>
+                                                </button>
+                                                <button type="button" class="robot-type-option" onclick="selectRobotType('qq')">
+                                                    <span data-i18n="settings.robots.qq.title">QQ 机器人</span>
+                                                    <small data-i18n="settings.robots.qq.subtitle">QQ 开放平台</small>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="robot-commands-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="robot-commands-title">
+                                    <div class="modal-content robot-commands-modal-content">
+                                        <div class="modal-header">
+                                            <h2 id="robot-commands-title" data-i18n="settingsRobotsExtra.botCommandsTitle">机器人命令说明</h2>
+                                            <button type="button" class="modal-close" onclick="closeRobotCommandsModal()" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body robot-commands-modal-body">
+                                            <p class="settings-description" data-i18n="settingsRobotsExtra.botCommandsDesc">在对话中可发送以下命令（支持中英文）：</p>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryGeneral">通用</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>帮助</code> <code>help</code> — <span data-i18n="settingsRobotsExtra.botCmdHelp">显示本帮助 | Show this help</span></li>
+                                                <li><code>版本</code> <code>version</code> — <span data-i18n="settingsRobotsExtra.botCmdVersion">显示当前版本号 | Show version</span></li>
+                                            </ul>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryIdentity">身份与鉴权</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>身份</code> <code>whoami</code> — <span data-i18n="settingsRobotsExtra.botCmdIdentity">显示平台发送者、鉴权模式及当前实际 RBAC 身份 | Show effective identity</span></li>
+                                                <li><code>绑定 &lt;绑定码&gt;</code> <code>bind &lt;code&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdBindUser">绑定当前平台账号到 RBAC 用户（仅逐用户绑定模式） | Bind RBAC user</span></li>
+                                                <li><code>解绑</code> <code>unbind</code> — <span data-i18n="settingsRobotsExtra.botCmdUnbindUser">解除当前平台账号绑定（仅逐用户绑定模式，需确认） | Unbind RBAC user</span></li>
+                                            </ul>
+                                            <p class="settings-description" data-i18n="settingsRobotsExtra.botAuthHint">专用服务账号模式不接受“绑定/解绑”命令，仅允许机器人配置中白名单内的发送者。</p>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryConversation">对话</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>列表</code> <code>list</code> — <span data-i18n="settingsRobotsExtra.botCmdList">列出所有对话标题与 ID | List conversations</span></li>
+                                                <li><code>切换 &lt;ID&gt;</code> <code>switch &lt;ID&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdSwitch">指定对话继续 | Switch to conversation</span></li>
+                                                <li><code>新对话</code> <code>new</code> — <span data-i18n="settingsRobotsExtra.botCmdNew">开启新对话 | Start new conversation</span></li>
+                                                <li><code>清空</code> <code>clear</code> — <span data-i18n="settingsRobotsExtra.botCmdClear">清空当前上下文 | Clear context</span></li>
+                                                <li><code>状态</code> <code>status</code> — <span data-i18n="settingsRobotsExtra.botCmdStatus">汇总当前对话、模式、角色与项目 | Show current status</span></li>
+                                                <li><code>任务</code> <code>task</code> — <span data-i18n="settingsRobotsExtra.botCmdTask">查看当前任务状态与运行时长 | Show current task</span></li>
+                                                <li><code>重命名 &lt;名称&gt;</code> <code>rename &lt;name&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdRename">修改当前对话标题 | Rename conversation</span></li>
+                                                <li><code>停止</code> <code>stop</code> — <span data-i18n="settingsRobotsExtra.botCmdStop">中断当前任务 | Stop running task</span></li>
+                                                <li><code>删除 &lt;ID&gt;</code> <code>delete &lt;ID&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdDelete">删除指定对话（需确认） | Delete conversation</span></li>
+                                            </ul>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryRole">角色</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>角色</code> <code>roles</code> — <span data-i18n="settingsRobotsExtra.botCmdRoles">列出所有可用角色 | List roles</span></li>
+                                                <li><code>角色 &lt;名&gt;</code> <code>role &lt;name&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdRole">切换当前角色 | Switch role</span></li>
+                                            </ul>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryMode">模式</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>模式</code> <code>modes</code> — <span data-i18n="settingsRobotsExtra.botCmdModes">列出对话模式与当前选择 | List conversation modes</span></li>
+                                                <li><code>模式 &lt;名称&gt;</code> <code>mode &lt;name&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdMode">切换对话模式 | Switch conversation mode</span></li>
+                                            </ul>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryProject">项目</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>项目</code> <code>projects</code> — <span data-i18n="settingsRobotsExtra.botCmdProjects">列出所有项目 | List projects</span></li>
+                                                <li><code>新建项目 &lt;名称&gt;</code> <code>new project &lt;name&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdNewProject">创建项目并绑定当前对话 | Create &amp; bind project</span></li>
+                                                <li><code>绑定项目 &lt;ID或名称&gt;</code> <code>bind project &lt;ID|name&gt;</code> — <span data-i18n="settingsRobotsExtra.botCmdBindProject">将当前对话绑定到项目 | Bind conversation</span></li>
+                                                <li><code>解除项目</code> <code>unbind project</code> — <span data-i18n="settingsRobotsExtra.botCmdUnbindProject">解除当前对话的项目绑定 | Unbind project</span></li>
+                                            </ul>
+
+                                            <p class="robot-cmd-category" data-i18n="settingsRobotsExtra.botCmdCategoryDiagnostics">诊断与安全</p>
+                                            <ul class="robot-cmd-list">
+                                                <li><code>权限</code> <code>permissions</code> — <span data-i18n="settingsRobotsExtra.botCmdPermissions">查看当前业务权限 | Show effective permissions</span></li>
+                                                <li><code>诊断</code> <code>doctor</code> — <span data-i18n="settingsRobotsExtra.botCmdDoctor">检查关键配置状态 | Check configuration status</span></li>
+                                                <li><code>确认</code> <code>confirm</code> / <code>取消</code> <code>cancel</code> — <span data-i18n="settingsRobotsExtra.botCmdConfirmation">确认或取消高风险操作 | Confirm or cancel risky action</span></li>
+                                            </ul>
+
+                                            <p class="settings-description robot-cmd-footer" data-i18n="settingsRobotsExtra.botCommandsFooter">除以上命令外，直接输入内容将按绑定用户或服务账号的实时 RBAC 权限发送给 AI。Otherwise, text is sent to AI under the effective RBAC identity.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-subsection robot-command-entry">
+                                    <div class="robot-command-entry-copy">
+                                        <h4 data-i18n="settingsRobotsExtra.botCommandsTitle">机器人命令说明</h4>
+                                        <p class="settings-description" data-i18n="settingsRobotsExtra.botCommandsEntryDesc">查看机器人对话中可用的中英文命令，包括身份鉴权、对话、角色、模式、项目和安全诊断。</p>
+                                    </div>
+                                    <button type="button" class="btn-secondary" onclick="openRobotCommandsModal()" data-i18n="settingsRobotsExtra.viewAllCommands">查看全部命令</button>
+                                </div>
+
+                                <div class="settings-actions">
+                                    <button class="btn-primary" onclick="applySettings()" data-require-permission="config:write" data-i18n="settings.apply.button">应用配置</button>
+                                </div>
+                            </div>
+
+                            <!-- 终端 -->
+                            <div id="settings-section-terminal" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settingsTerminal.title">终端</h3>
+                                    <p class="settings-description" data-i18n="settingsTerminal.description">在服务器上执行命令，便于运维与调试。命令在服务端执行，请勿执行敏感或破坏性操作。</p>
+                                </div>
+                                <div class="terminal-wrapper">
+                                    <div class="terminal-tabs">
+                                        <div class="terminal-tab active" data-tab-id="1"><span class="terminal-tab-label" onclick="switchTerminalTab(1)">终端 1</span><button type="button" class="terminal-tab-close" onclick="removeTerminalTab(1); event.stopPropagation();" data-i18n="settingsTerminal.close" data-i18n-attr="title" title="关闭">×</button></div>
+                                        <button type="button" class="terminal-tab-new" onclick="addTerminalTab()" data-i18n="settingsTerminal.newTerminal" data-i18n-attr="title" title="新终端">+</button>
+                                    </div>
+                                    <div class="terminal-panes">
+                                        <div id="terminal-pane-1" class="terminal-pane active">
+                                            <div id="terminal-container-1" class="terminal-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 日志审计 -->
+                            <div id="settings-section-audit" class="settings-section-content">
+                                <div class="audit-section-head">
+                                    <h3 data-i18n="settingsAudit.title">日志审计</h3>
+                                    <div id="audit-summary-stats" class="audit-summary-tags" hidden>
+                                        <span class="audit-summary-tag"><span class="audit-summary-tag-label" data-i18n="settingsAudit.statTotal">当前筛选</span><strong id="audit-stat-total">0</strong></span>
+                                        <span class="audit-summary-tag audit-summary-tag--ok"><span class="audit-summary-tag-label" data-i18n="settingsAudit.statSuccess">成功</span><strong id="audit-stat-success">0</strong></span>
+                                        <span class="audit-summary-tag audit-summary-tag--warn"><span class="audit-summary-tag-label" data-i18n="settingsAudit.statFailures">失败</span><strong id="audit-stat-failures">0</strong></span>
+                                        <span class="audit-summary-tag"><span class="audit-summary-tag-label" data-i18n="settingsAudit.statRecent7d">近 7 天</span><strong id="audit-stat-recent">0</strong></span>
+                                    </div>
+                                </div>
+                                <div class="audit-filter-card">
+                                    <div class="audit-time-presets" id="audit-time-presets">
+                                        <span class="audit-time-presets-label" data-i18n="settingsAudit.timePresets">快捷</span>
+                                        <button type="button" class="audit-time-preset-btn" data-preset="15m" data-i18n="settingsAudit.preset15m">最近15分钟</button>
+                                        <button type="button" class="audit-time-preset-btn" data-preset="1h" data-i18n="settingsAudit.preset1h">最近1小时</button>
+                                        <button type="button" class="audit-time-preset-btn" data-preset="24h" data-i18n="settingsAudit.preset24h">最近24小时</button>
+                                        <button type="button" class="audit-time-preset-btn" data-preset="7d" data-i18n="settingsAudit.preset7d">最近7天</button>
+                                        <button type="button" class="audit-time-preset-btn" data-preset="today" data-i18n="settingsAudit.presetToday">今天</button>
+                                    </div>
+                                    <div class="audit-filter-fields">
+                                        <div class="audit-filter-row">
+                                        <div class="audit-field audit-field--event">
+                                            <span data-i18n="settingsAudit.filterEvent">事件类型</span>
+                                            <div class="audit-filter-cascade">
+                                                <select id="audit-filter-category" onchange="onAuditCategoryFilterChange()" aria-label="类别">
+                                                    <option value="" data-i18n="settingsAudit.filterAllCategories">全部类别</option>
+                                                    <option value="auth" data-i18n="settingsAudit.cat.auth">认证</option>
+                                                    <option value="config" data-i18n="settingsAudit.cat.config">配置</option>
+                                                    <option value="c2" data-i18n="settingsAudit.cat.c2">C2</option>
+                                                    <option value="webshell" data-i18n="settingsAudit.cat.webshell">WebShell</option>
+                                                    <option value="knowledge" data-i18n="settingsAudit.cat.knowledge">知识库</option>
+                                                    <option value="conversation" data-i18n="settingsAudit.cat.conversation">对话</option>
+                                                    <option value="vulnerability" data-i18n="settingsAudit.cat.vulnerability">漏洞</option>
+                                                    <option value="external_mcp" data-i18n="settingsAudit.cat.externalMcp">外部 MCP</option>
+                                                    <option value="task" data-i18n="settingsAudit.cat.task">任务</option>
+                                                    <option value="tool" data-i18n="settingsAudit.cat.tool">工具</option>
+                                                    <option value="file" data-i18n="settingsAudit.cat.file">文件</option>
+                                                    <option value="hitl" data-i18n="settingsAudit.cat.hitl">人机协同</option>
+                                                    <option value="role" data-i18n="settingsAudit.cat.role">角色</option>
+                                                    <option value="skill" data-i18n="settingsAudit.cat.skill">Skill</option>
+                                                    <option value="agent" data-i18n="settingsAudit.cat.agent">子代理</option>
+                                                </select>
+                                                <span class="audit-filter-cascade-arrow" aria-hidden="true">→</span>
+                                                <select id="audit-filter-action" disabled aria-label="操作">
+                                                    <option value="" data-i18n="settingsAudit.filterAllActions">全部操作</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <label class="audit-field audit-field--result">
+                                            <span data-i18n="settingsAudit.filterResult">结果</span>
+                                            <select id="audit-filter-result">
+                                                <option value="" data-i18n="settingsAudit.filterAll">全部</option>
+                                                <option value="success">success</option>
+                                                <option value="failure">failure</option>
+                                            </select>
+                                        </label>
+                                        <div class="audit-filter-time-group">
+                                        <label class="audit-field audit-field--time">
+                                            <span data-i18n="settingsAudit.filterSince">开始时间</span>
+                                            <div class="audit-datetime-field" id="audit-filter-since-field">
+                                                <input type="text" id="audit-filter-since" class="audit-datetime-input" readonly autocomplete="off" data-i18n="settingsAudit.datetimePlaceholder" data-i18n-attr="placeholder" placeholder="选择日期时间" />
+                                                <button type="button" class="audit-datetime-btn audit-datetime-clear-btn" title="Clear" aria-label="Clear" hidden>&times;</button>
+                                                <button type="button" class="audit-datetime-btn audit-datetime-open-btn" title="Open" aria-label="Open">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                </button>
+                                            </div>
+                                        </label>
+                                        <label class="audit-field audit-field--time">
+                                            <span data-i18n="settingsAudit.filterUntil">结束时间</span>
+                                            <div class="audit-datetime-field" id="audit-filter-until-field">
+                                                <input type="text" id="audit-filter-until" class="audit-datetime-input" readonly autocomplete="off" data-i18n="settingsAudit.datetimePlaceholder" data-i18n-attr="placeholder" placeholder="选择日期时间" />
+                                                <button type="button" class="audit-datetime-btn audit-datetime-clear-btn" title="Clear" aria-label="Clear" hidden>&times;</button>
+                                                <button type="button" class="audit-datetime-btn audit-datetime-open-btn" title="Open" aria-label="Open">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                </button>
+                                            </div>
+                                        </label>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <div class="audit-filter-bottom">
+                                        <label class="audit-field audit-field--keyword">
+                                            <span data-i18n="settingsAudit.filterQuery">关键词</span>
+                                            <input type="text" id="audit-filter-q" data-i18n="settingsAudit.filterQueryPlaceholder" data-i18n-attr="placeholder" placeholder="消息 / 资源 ID / 操作名" />
+                                        </label>
+                                        <div class="audit-logs-actions">
+                                            <button type="button" class="btn-primary" onclick="filterAuditLogs()" data-i18n="settingsAudit.filterBtn">筛选</button>
+                                            <button type="button" class="btn-secondary" onclick="resetAuditLogFilters()" data-i18n="settingsAudit.resetBtn">重置</button>
+                                            <button type="button" class="btn-secondary" onclick="refreshAuditLogs()" data-i18n="common.refresh">刷新</button>
+                                            <div class="audit-export-dropdown">
+                                                <button type="button" class="btn-secondary audit-export-trigger" id="audit-export-trigger" onclick="toggleAuditExportMenu(event)" aria-haspopup="true" aria-expanded="false">
+                                                    <span data-i18n="settingsAudit.exportBtn">导出</span>
+                                                    <span class="audit-export-caret" aria-hidden="true">▾</span>
+                                                </button>
+                                                <div id="audit-export-menu" class="audit-export-menu" role="menu" hidden>
+                                                    <button type="button" class="audit-export-menu-item" role="menuitem" data-require-permission="audit:read" onclick="runAuditExport('json')" data-i18n="settingsAudit.exportJson">导出 JSON</button>
+                                                    <button type="button" class="audit-export-menu-item" role="menuitem" data-require-permission="audit:read" onclick="runAuditExport('csv')" data-i18n="settingsAudit.exportCsv">导出 CSV</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p id="audit-filter-timezone-hint" class="audit-timezone-hint" hidden></p>
+                                </div>
+                                <div id="audit-log-list" class="audit-log-list"></div>
+                                <div id="audit-logs-pagination" class="pagination-container audit-logs-pagination"></div>
+                            </div>
+
+                            <!-- 安全设置 -->
+                            <div id="settings-section-security" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settings.nav.security">安全设置</h3>
+                                </div>
+                                
+                                <div class="settings-subsection">
+                                    <h4 data-i18n="settingsSecurity.changePasswordTitle">修改密码</h4>
+                                    <p class="settings-description" data-i18n="settingsSecurity.changePasswordDesc">修改登录密码后，需要使用新密码重新登录。</p>
+                                    <div class="settings-form">
+                                        <div class="form-group">
+                                            <label for="auth-current-password" data-i18n="settingsSecurity.currentPassword">当前密码</label>
+                                            <input type="password" id="auth-current-password" oninput="clearPasswordFieldError(this)" data-i18n="settingsSecurity.currentPasswordPlaceholder" data-i18n-attr="placeholder" placeholder="输入当前登录密码" autocomplete="current-password" />
+                                            <small id="auth-current-password-error" class="password-field-error" role="alert" hidden></small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="auth-new-password" data-i18n="settingsSecurity.newPassword">新密码</label>
+                                            <input type="password" id="auth-new-password" oninput="clearPasswordFieldError(this)" data-i18n="settingsSecurity.newPasswordPlaceholder" data-i18n-attr="placeholder" placeholder="设置新密码（至少 8 位）" autocomplete="new-password" />
+                                            <small id="auth-new-password-error" class="password-field-error" role="alert" hidden></small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="auth-confirm-password" data-i18n="settingsSecurity.confirmPassword">确认新密码</label>
+                                            <input type="password" id="auth-confirm-password" oninput="clearPasswordFieldError(this)" data-i18n="settingsSecurity.confirmPasswordPlaceholder" data-i18n-attr="placeholder" placeholder="再次输入新密码" autocomplete="new-password" />
+                                            <small id="auth-confirm-password-error" class="password-field-error" role="alert" hidden></small>
+                                        </div>
+                                        <div id="password-form-error" class="password-field-error" role="alert" hidden></div>
+                                        <div class="form-actions">
+                                            <button class="btn-secondary" type="button" onclick="resetPasswordForm()" data-i18n="settingsSecurity.clear">清空</button>
+                                            <button class="btn-primary change-password-submit" type="button" data-require-permission="auth:self" onclick="changePassword()" data-i18n="settingsSecurity.changePasswordBtn">修改密码</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 存储清理 -->
+                            <div id="settings-section-storage" class="settings-section-content">
+                                <div class="settings-section-header">
+                                    <h3 data-i18n="settingsStorage.title">存储清理</h3>
+                                </div>
+                                <p class="storage-desc" data-i18n="settingsStorage.subtitle">统计并清理运行期间产生的磁盘垃圾（Agent 工作区、工具输出缓存、C2 产物、对话上传件等）。删除不可逆，建议先预览再执行。</p>
+
+                                <div class="storage-overview" id="storage-overview" hidden>
+                                    <div class="storage-overview-card">
+                                        <span class="storage-overview-label" data-i18n="settingsStorage.diskUsed">磁盘已用</span>
+                                        <strong id="storage-disk-used">—</strong>
+                                        <div class="storage-usage-bar"><span id="storage-usage-bar-fill"></span></div>
+                                        <span class="storage-overview-hint" id="storage-disk-detail">—</span>
+                                    </div>
+                                    <div class="storage-overview-card">
+                                        <span class="storage-overview-label" data-i18n="settingsStorage.runtimeTotal">运行空间占用</span>
+                                        <strong id="storage-total-bytes">—</strong>
+                                        <span class="storage-overview-hint" id="storage-total-units">—</span>
+                                    </div>
+                                    <div class="storage-overview-card storage-overview-card--accent">
+                                        <span class="storage-overview-label" data-i18n="settingsStorage.reclaimable">可回收</span>
+                                        <strong id="storage-reclaimable-bytes">—</strong>
+                                        <span class="storage-overview-hint" id="storage-reclaimable-units">—</span>
+                                    </div>
+                                    <div class="storage-overview-card">
+                                        <span class="storage-overview-label" data-i18n="settingsStorage.inodes">inode 使用</span>
+                                        <strong id="storage-inodes">—</strong>
+                                        <span class="storage-overview-hint" data-i18n="settingsStorage.inodesHint">扫描产生的海量小文件可能先耗尽 inode</span>
+                                    </div>
+                                </div>
+
+                                <div class="storage-toolbar">
+                                    <button type="button" class="btn-secondary" onclick="refreshStorageStatus(true)" data-i18n="settingsStorage.refresh">重新扫描</button>
+                                    <button type="button" class="btn-secondary" onclick="previewStorageCleanup()" data-i18n="settingsStorage.preview">预览可清理项</button>
+                                    <button type="button" class="btn-primary" data-require-permission="storage:write" onclick="runStorageCleanup()" data-i18n="settingsStorage.cleanNow">立即清理</button>
+                                    <span class="storage-scanned-at" id="storage-scanned-at"></span>
+                                </div>
+
+                                <div class="storage-result" id="storage-result" hidden></div>
+
+                                <div class="audit-log-table-wrap">
+                                    <table class="audit-log-table storage-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="settingsStorage.colCategory">类别</th>
+                                                <th data-i18n="settingsStorage.colRoot">目录</th>
+                                                <th data-i18n="settingsStorage.colUnits">项目数</th>
+                                                <th data-i18n="settingsStorage.colSize">占用</th>
+                                                <th data-i18n="settingsStorage.colReclaimable">可回收</th>
+                                                <th data-i18n="settingsStorage.colRetention">保留天数</th>
+                                                <th data-i18n="settingsStorage.colEnabled">启用</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="storage-category-rows">
+                                            <tr><td colspan="7" class="storage-empty" data-i18n="settingsStorage.loading">加载中…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="storage-policy">
+                                    <h4 data-i18n="settingsStorage.policyTitle">自动清理策略</h4>
+                                    <div class="storage-policy-grid">
+                                        <label class="storage-policy-field storage-policy-field--switch">
+                                            <input type="checkbox" id="storage-auto-clean" />
+                                            <span data-i18n="settingsStorage.autoClean">开启后台定时清理</span>
+                                        </label>
+                                        <label class="storage-policy-field">
+                                            <span data-i18n="settingsStorage.intervalMinutes">清理间隔（分钟）</span>
+                                            <input type="number" id="storage-interval-minutes" min="5" step="5" />
+                                        </label>
+                                        <label class="storage-policy-field">
+                                            <span data-i18n="settingsStorage.orphanGraceDays">孤儿目录宽限（天）</span>
+                                            <input type="number" id="storage-orphan-grace-days" min="0" step="1" />
+                                        </label>
+                                        <label class="storage-policy-field">
+                                            <span data-i18n="settingsStorage.activeGraceHours">活跃会话保护（小时）</span>
+                                            <input type="number" id="storage-active-grace-hours" min="1" step="1" />
+                                        </label>
+                                    </div>
+                                    <p class="storage-policy-hint" data-i18n="settingsStorage.policyHint">保留天数为 0 表示不按保留期清理，但会话已删除的孤儿目录仍会回收；最近有活动的会话在任何情况下都不会被清理。默认关闭自动清理，升级不会自动删除既有数据。</p>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-primary" data-require-permission="storage:write" onclick="saveStorageSettings()" data-i18n="settingsStorage.save">保存策略</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 一键更新 -->
+                            <div id="settings-section-update" class="settings-section-content" data-require-permission="update:read">
+                                <div class="settings-section-header update-section-head">
+                                    <h3 data-i18n="update.title">一键更新</h3>
+                                    <button class="btn-secondary" type="button" onclick="loadUpdateConsole()" data-i18n="common.refresh">刷新</button>
+                                </div>
+                                <p class="update-intro" data-i18n="update.intro">这一页改的就是当前正在应答请求的这套安装：拉取它自己跟踪的远端、重新编译、换掉二进制。你本机维护的 roles/skills/tools 与配置不会被覆盖。</p>
+                                <div id="update-console" class="update-console"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+{{end}}

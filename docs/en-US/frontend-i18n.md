@@ -7,9 +7,9 @@ CyberStrikeAI frontend i18n is static and lightweight. Text is organized in JSON
 ## Files
 
 ```text
-web/static/i18n/zh-CN.json
-web/static/i18n/en-US.json
-web/static/js/i18n.js
+web/core/static/i18n/zh-CN.json
+web/core/static/i18n/en-US.json
+web/core/static/js/i18n.js
 ```
 
 ## Key Principles

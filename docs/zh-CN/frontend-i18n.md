@@ -1,6 +1,6 @@
 ## CyberStrikeAI 前端国际化方案
 
-本文档说明 CyberStrikeAI Web 前端（`web/templates/index.html` + `web/static/js/*.js`）的国际化设计与开发规范，确保在不引入打包工具和不改动后端路由的前提下，实现可扩展、低返工的多语言支持。
+本文档说明 CyberStrikeAI Web 前端（`web/core/templates/index.html` 壳层 + 各模块 `web/<module>/templates` 与 `web/<module>/static/js/*.js`）的国际化设计与开发规范，确保在不引入打包工具和不改动后端路由的前提下，实现可扩展、低返工的多语言支持。
 
 当前目标：
 
@@ -12,7 +12,7 @@
 ## 一、总体设计原则
 
 - **前端主导的客户端国际化**：所有 UI 文案在浏览器端根据当前语言动态渲染，后端 Go 仅负责结构和数据，不参与语言分发。
-- **单一 HTML 模板**：继续使用一份 `index.html` 模板，不为不同语言复制模板文件。
+- **单一 HTML 壳层**：继续使用一份 `web/core/templates/index.html` 作为壳层，各模块只提供片段，不为不同语言复制模板文件。
 - **文案与逻辑分离**：所有可见文本通过「键值表」管理（多语言 JSON），HTML / JS 只写 key，不直接写中文/英文常量。
 - **渐进式改造**：先覆盖 header / 登录 / 侧边栏 / 系统设置等关键区域，其他页面按模块逐步迁移，避免一次性大改动。
 - **可回退默认语言**：即使目标语言未完全翻译，也能回退到默认中文，不出现原始 key。
@@ -32,11 +32,11 @@
 
 ### 2.2 目录结构
 
-- `web/templates/index.html`  
-  - 页面骨架 + 所有静态文案位置，将逐步改为 `data-i18n` 标记。
-- `web/static/js/i18n.js`  
+- `web/core/templates/index.html`  
+  - 页面骨架（顶栏、侧边栏、登录浮层、脚本装配）；页面正文在 `web/<module>/templates/*.html`，同样使用 `data-i18n` 标记。
+- `web/core/static/js/i18n.js`  
   - 前端 i18n 初始化与 DOM 应用逻辑（本方案新增）。
-- `web/static/i18n/`（新增目录）
+- `web/core/static/i18n/`（新增目录）
   - `zh-CN.json`：中文文案（默认语言）
   - `en-US.json`：英文文案
   - 未来可新增：`ja-JP.json`、`ko-KR.json` 等。
@@ -58,7 +58,7 @@
 
 ### 3.2 JSON 示例
 
-`web/static/i18n/zh-CN.json` 示例：
+`web/core/static/i18n/zh-CN.json` 示例：
 
 ```json
 {
@@ -169,7 +169,7 @@
 - `window.changeLanguage(lang: string): Promise<void>`  
   - 切换语言并刷新页面文案（不会刷新整页）。
 
-示例（以 `web/static/js/settings.js` 为例）：
+示例（以 `web/settings/static/js/settings.js` 为例）：
 
 ```js
 // 之前
@@ -319,7 +319,7 @@ function updateLangLabel() {
 
 当需要新增语言时：
 
-1. 在 `web/static/i18n/` 中新增 `{lang}.json`，复制现有英文/中文文件结构，补充对应翻译。
+1. 在 `web/core/static/i18n/` 中新增 `{lang}.json`，复制现有英文/中文文件结构，补充对应翻译。
 2. 在语言切换下拉中添加对应选项，例如：
    - `data-lang="ja-JP"` / 文本 `日本語`
 3. 无需修改 `i18n.js` 或现有 HTML/JS 逻辑，即可支持新语言。

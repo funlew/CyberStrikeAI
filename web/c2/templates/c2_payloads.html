@@ -1,0 +1,72 @@
+{{define "c2/payloads"}}
+<div id="page-c2-payloads" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="c2.payloads.title">Payload 生成</h2>
+                    </div>
+                    <div class="page-content">
+                        <div class="c2-payload-grid">
+                            <div class="c2-payload-card">
+                                <h3>
+                                    <span class="c2-payload-icon" style="background:rgba(59,130,246,0.08);color:#3b82f6;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                                    </span>
+                                    <span data-i18n="c2.payloads.oneliner">单行 Payload</span>
+                                </h3>
+                                <p class="c2-payload-desc" data-i18n="c2.payloads.onelinerDesc">快速生成可在目标机直接执行的反弹命令，支持 Bash / Python / PowerShell / Curl</p>
+                                <div class="c2-form-group">
+                                    <label data-i18n="c2.payloads.listener">监听器</label>
+                                    <select id="c2-payload-listener" class="form-control c2-form-select-native"></select>
+                                </div>
+                                <div class="c2-form-group">
+                                    <label data-i18n="c2.payloads.kind">类型</label>
+                                    <select id="c2-payload-kind" class="form-control c2-form-select-native"></select>
+                                </div>
+                                <div class="c2-form-group">
+                                    <label data-i18n="c2.payloads.hostOptional">回连地址 (可选)</label>
+                                    <input type="text" id="c2-payload-host" class="form-control" data-i18n="c2.payloads.placeholderListenerHost" data-i18n-attr="placeholder" placeholder="留空则使用监听器地址">
+                                </div>
+                                <button type="button" id="c2-generate-oneliner-btn" class="btn-primary" data-require-permission="c2:write" onclick="C2.generateOneliner()" style="width:100%;" data-i18n="c2.payloads.generateOnelinerBtn">生成 Oneliner</button>
+                                <pre id="c2-oneliner-output" class="c2-oneliner-output" style="display:none;" onclick="C2.copyOneliner()" data-i18n="c2.payloads.clickToCopyTitle" data-i18n-attr="title" data-i18n-skip-text="true" title="点击复制"></pre>
+                            </div>
+                            <div class="c2-payload-card">
+                                <h3>
+                                    <span class="c2-payload-icon" style="background:rgba(16,185,129,0.08);color:#10b981;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                                    </span>
+                                    <span data-i18n="c2.payloads.build">编译 Beacon 二进制</span>
+                                </h3>
+                                <p class="c2-payload-desc" data-i18n="c2.payloads.buildDesc">交叉编译支持多平台的完整 Beacon 可执行文件，支持 Linux / Windows / macOS</p>
+                                <div class="c2-form-group">
+                                    <label data-i18n="c2.payloads.listener">监听器</label>
+                                    <select id="c2-build-listener" class="form-control c2-form-select-native"></select>
+                                    <p id="c2-build-loopback-hint" class="form-hint" style="display:none;margin-top:8px;color:#b45309;"></p>
+                                </div>
+                                <div class="c2-form-group">
+                                    <label data-i18n="c2.payloads.hostOptional">回连地址（可选）</label>
+                                    <input type="text" id="c2-build-host" class="form-control" data-i18n="c2.payloads.placeholderListenerHost" data-i18n-attr="placeholder" placeholder="留空则使用监听器地址">
+                                </div>
+                                <div class="c2-form-row">
+                                    <div class="c2-form-group">
+                                        <label data-i18n="c2.payloads.os">目标系统</label>
+                                        <select id="c2-build-os" class="form-control c2-form-select-native">
+                                            <option value="linux" data-i18n="c2.payloads.linux">Linux</option>
+                                            <option value="windows" data-i18n="c2.payloads.windows">Windows</option>
+                                            <option value="darwin" data-i18n="c2.payloads.darwin">macOS</option>
+                                        </select>
+                                    </div>
+                                    <div class="c2-form-group">
+                                        <label data-i18n="c2.payloads.arch">目标架构</label>
+                                        <select id="c2-build-arch" class="form-control c2-form-select-native">
+                                            <option value="amd64" data-i18n="c2.payloads.amd64">AMD64</option>
+                                            <option value="arm64" data-i18n="c2.payloads.arm64">ARM64</option>
+                                            <option value="386" data-i18n="c2.payloads.386">386</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button id="c2-build-btn" type="button" class="btn-primary" data-require-permission="c2:write" onclick="C2.buildBeacon()" style="width:100%;" data-i18n="c2.payloads.buildBeaconBtn">构建 Beacon</button>
+                                <div id="c2-build-result"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

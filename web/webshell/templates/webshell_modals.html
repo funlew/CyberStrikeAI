@@ -1,0 +1,76 @@
+{{define "webshell/modals"}}
+<div id="webshell-modal" class="modal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h2 id="webshell-modal-title" data-i18n="webshell.addConnection">添加连接</h2>
+                <span class="modal-close" onclick="closeWebshellModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="webshell-edit-id" value="" />
+                <div class="form-group">
+                    <label for="webshell-url"><span data-i18n="webshell.url">Shell 地址</span> <span style="color: red;">*</span></label>
+                    <input type="text" id="webshell-url" data-i18n="webshell.urlPlaceholder" data-i18n-attr="placeholder" placeholder="http(s)://target.com/shell.php" />
+                </div>
+                <div class="form-group">
+                    <label for="webshell-password" data-i18n="webshell.password">连接密码/密钥</label>
+                    <input type="text" id="webshell-password" data-i18n="webshell.passwordPlaceholder" data-i18n-attr="placeholder" placeholder="如冰蝎/蚁剑的连接密码" />
+                </div>
+                <div class="form-group">
+                    <label for="webshell-type" data-i18n="webshell.type">Shell 类型</label>
+                    <select id="webshell-type">
+                        <option value="php" data-i18n="webshell.typePhp">PHP</option>
+                        <option value="asp" data-i18n="webshell.typeAsp">ASP</option>
+                        <option value="aspx" data-i18n="webshell.typeAspx">ASPX</option>
+                        <option value="jsp" data-i18n="webshell.typeJsp">JSP</option>
+                        <option value="custom" data-i18n="webshell.typeCustom">自定义</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="webshell-method" data-i18n="webshell.method">请求方式</label>
+                    <select id="webshell-method">
+                        <option value="post" data-i18n="webshell.methodPost">POST</option>
+                        <option value="get" data-i18n="webshell.methodGet">GET</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="webshell-cmd-param" data-i18n="webshell.cmdParam">命令参数名</label>
+                    <input type="text" id="webshell-cmd-param" data-i18n="webshell.cmdParamPlaceholder" data-i18n-attr="placeholder" placeholder="不填默认为 cmd，如 xxx 则请求为 xxx=命令" />
+                </div>
+                <div class="form-group">
+                    <label for="webshell-os" data-i18n="webshell.os">目标系统</label>
+                    <select id="webshell-os">
+                        <option value="auto" data-i18n="webshell.osAuto">自动（按 Shell 类型推断）</option>
+                        <option value="linux" data-i18n="webshell.osLinux">Linux / Unix</option>
+                        <option value="windows" data-i18n="webshell.osWindows">Windows</option>
+                    </select>
+                    <small class="form-hint" data-i18n="webshell.osHint">决定文件管理/上传使用 Linux 还是 Windows 命令；PHP/JSP 跑在 Windows 上请选 Windows</small>
+                </div>
+                <div class="form-group">
+                    <label for="webshell-encoding" data-i18n="webshell.encoding">响应编码</label>
+                    <select id="webshell-encoding">
+                        <option value="auto" data-i18n="webshell.encodingAuto">自动检测</option>
+                        <option value="utf-8" data-i18n="webshell.encodingUtf8">UTF-8</option>
+                        <option value="gbk" data-i18n="webshell.encodingGbk">GBK（中文 Windows）</option>
+                        <option value="gb18030" data-i18n="webshell.encodingGb18030">GB18030</option>
+                    </select>
+                    <small class="form-hint" data-i18n="webshell.encodingHint">中文 Windows 目标若出现乱码，请切换为 GBK 或 GB18030</small>
+                </div>
+                <div class="form-group">
+                    <label for="webshell-project-id" data-i18n="assets.project">所属项目</label>
+                    <select id="webshell-project-id">
+                        <option value="" data-i18n="assets.unboundProject">暂不绑定</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="webshell-remark" data-i18n="webshell.remark">备注</label>
+                    <input type="text" id="webshell-remark" data-i18n="webshell.remarkPlaceholder" data-i18n-attr="placeholder" placeholder="便于识别的备注名" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="webshell-test-btn" onclick="testWebshellConnection()" data-i18n="webshell.testConnectivity">测试连通性</button>
+                <button class="btn-secondary" onclick="closeWebshellModal()" data-i18n="common.cancel">取消</button>
+                <button class="btn-primary" data-require-permission="webshell:write" onclick="saveWebshellConnection()" data-i18n="common.save">保存</button>
+            </div>
+        </div>
+    </div>
+{{end}}

@@ -1,0 +1,44 @@
+{{define "knowledge/retrieval-logs"}}
+<div id="page-knowledge-retrieval-logs" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="knowledge.retrievalLogs">检索历史</h2>
+                        <button class="btn-secondary" onclick="refreshRetrievalLogs()" data-i18n="common.refresh">刷新</button>
+                    </div>
+                    <div class="page-content">
+                        <div class="retrieval-logs-controls">
+                            <div class="retrieval-stats-bar" id="retrieval-stats">
+                                <div class="retrieval-stat-item">
+                                    <span class="retrieval-stat-label" data-i18n="retrievalLogs.totalRetrievals">总检索次数</span>
+                                    <span class="retrieval-stat-value">-</span>
+                                </div>
+                                <div class="retrieval-stat-item">
+                                    <span class="retrieval-stat-label" data-i18n="retrievalLogs.successRetrievals">成功检索</span>
+                                    <span class="retrieval-stat-value">-</span>
+                                </div>
+                                <div class="retrieval-stat-item">
+                                    <span class="retrieval-stat-label" data-i18n="retrievalLogs.successRate">成功率</span>
+                                    <span class="retrieval-stat-value">-</span>
+                                </div>
+                                <div class="retrieval-stat-item">
+                                    <span class="retrieval-stat-label" data-i18n="retrievalLogs.retrievedItems">检索到知识项</span>
+                                    <span class="retrieval-stat-value">-</span>
+                                </div>
+                            </div>
+                            <div class="retrieval-logs-filters">
+                                <label>
+                                    <span data-i18n="retrievalLogs.conversationId">对话ID</span>
+                                    <input type="text" id="retrieval-logs-conversation-id" data-i18n="retrievalLogs.optionalConversation" data-i18n-attr="placeholder" placeholder="可选：筛选特定对话" />
+                                </label>
+                                <label>
+                                    <span data-i18n="retrievalLogs.messageId">消息ID</span>
+                                    <input type="text" id="retrieval-logs-message-id" data-i18n="retrievalLogs.optionalMessage" data-i18n-attr="placeholder" placeholder="可选：筛选特定消息" />
+                                </label>
+                                <button class="btn-secondary" onclick="filterRetrievalLogs()" data-i18n="retrievalLogs.filter">筛选</button>
+                            </div>
+                        </div>
+                        <div id="retrieval-logs-list" class="retrieval-logs-list">
+                            <div class="loading-spinner" data-i18n="retrievalLogs.loading">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

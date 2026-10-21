@@ -10,11 +10,11 @@ const { chromium } = require('playwright');
 
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const template = read('web/templates/index.html');
+const template = read('web/projects/templates/projects_page.html');
 const start = template.indexOf('<main class="projects-detail"');
 assert.ok(start >= 0, 'project detail fixture must exist');
 const markup = template.slice(start, template.indexOf('</main>', start) + 7);
-const source = read('web/static/js/projects.js');
+const source = read('web/projects/static/js/projects.js');
 const switchTab = source.slice(source.indexOf('function switchProjectTab('), source.indexOf('async function loadProjectAssets('));
 const tabs = ['facts', 'graph', 'assets', 'conversations', 'vulns', 'settings'];
 
@@ -30,13 +30,13 @@ test('project headers contain their content and all tabs receive mobile taps', a
                 const page = await context.newPage();
                 // Keep the real markup and both complete stylesheets, including theme overrides.
                 await page.setContent(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div class="container"><header><div class="header-content">CyberStrikeAI</div></header><div id="page-projects" class="page active"><div class="page-content projects-page-layout">${markup}</div></div></div></body></html>`);
-                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({ content: read(`web/static/css/${file}`) });
+                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({ content: read(`web/core/static/css/${file}`) });
                 // Use the real tab handler; replace only data loaders to keep the test offline.
                 await page.addScriptTag({ content: `let currentProjectTab = 'facts'; window.loads = [];
                     ${['Facts', 'FactGraph', 'Assets', 'Conversations', 'Vulnerabilities'].map(name => `function loadProject${name}() { window.loads.push('${name}'); }`).join('\n')}
                     ${switchTab}` });
                 for (const locale of ['zh-CN', 'en-US', 'ru-RU']) {
-                    const translations = JSON.parse(read(`web/static/i18n/${locale}.json`));
+                    const translations = JSON.parse(read(`web/core/static/i18n/${locale}.json`));
                     await page.evaluate(dict => {
                         document.querySelectorAll('[data-i18n]').forEach(el => {
                             if (el.children.length || el.hasAttribute('data-i18n-attr')) return;
@@ -120,7 +120,7 @@ test('mobile project page scrolls its final row above the bottom navigation', as
                 const page = await context.newPage();
                 const projectPage = await page.evaluate(template => new DOMParser().parseFromString(template, 'text/html').querySelector('#page-projects').outerHTML, template);
                 await page.setContent(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div class="container"><header><div class="header-content">CyberStrikeAI</div></header><div class="main-layout"><div class="content-area">${projectPage}</div></div></div><nav id="m-tabbar">底部导航</nav></body></html>`);
-                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({ content: read(`web/static/css/${file}`) });
+                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({ content: read(`web/core/static/css/${file}`) });
                 await page.evaluate(visibleHeight => {
                     document.documentElement.style.setProperty('--m-app-height', `${visibleHeight}px`);
                     document.documentElement.style.setProperty('--m-safe-bottom', '20px');
@@ -203,9 +203,9 @@ test('mobile facts keep badges and actions inside their columns while scrolling 
             try {
                 const page = await context.newPage();
                 await page.setContent(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div class="container"><header>CyberStrikeAI</header><div id="page-projects" class="page active"><div class="page-content projects-page-layout">${markup}</div></div></div></body></html>`);
-                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({content: read(`web/static/css/${file}`)});
+                for (const file of ['style.css', 'mobile.css']) await page.addStyleTag({content: read(`web/core/static/css/${file}`)});
                 await page.addScriptTag({content: source});
-                const mobileSource = read('web/static/js/mobile-ui.js');
+                const mobileSource = read('web/core/static/js/mobile-ui.js');
                 const wrapTables = mobileSource.slice(mobileSource.indexOf('    function wrapTables('), mobileSource.indexOf('    /* ---------------------------------------------------------------------\n       11.'));
                 await page.addScriptTag({content: `const isMobile = () => true;
                     const $$ = (selector, root) => Array.from(root.querySelectorAll(selector));
@@ -228,7 +228,7 @@ test('mobile facts keep badges and actions inside their columns while scrolling 
                     await page.evaluate(dict => {
                         window.t = key => key.split('.').reduce((v, k) => v?.[k], dict) || key;
                         document.querySelectorAll('thead [data-i18n]').forEach(el => { el.textContent = window.t(el.dataset.i18n); });
-                    }, JSON.parse(read(`web/static/i18n/${locale}.json`)));
+                    }, JSON.parse(read(`web/core/static/i18n/${locale}.json`)));
                     await page.evaluate(() => loadProjectFacts());
                     for (const theme of ['light', 'dark']) {
                         const label = `${width}px ${locale} ${theme}`;

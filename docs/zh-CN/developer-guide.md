@@ -16,8 +16,11 @@ internal/workflow/       工作流运行时
 internal/knowledge/      知识库索引与检索
 internal/c2/             内置 C2
 internal/project/        项目事实黑板
-web/static/              前端 JS/CSS/资源
-web/templates/           HTML 模板
+web/core/                壳层模板（页面骨架）与通用 JS/CSS/vendor/i18n
+web/<module>/            业务模块，每个模块自带 templates/ 与 static/
+                         （dashboard、chat、security、assets、projects、vulnerabilities、
+                          tasks、workflows、webshell、c2、mcp、skills、tools、agents、
+                          roles、knowledge、rbac、settings、api-docs）
 tools/                   命令工具 YAML
 roles/                   角色 YAML
 agents/                  多代理 Markdown 定义
@@ -31,7 +34,7 @@ docs/                    项目文档
 go run ./cmd/server --config config.yaml
 ```
 
-前端是静态页面，模板在 `web/templates/`，JS/CSS 在 `web/static/`。修改后刷新浏览器即可验证，多数场景不需要单独前端构建。
+前端是静态页面：`web/core/templates/index.html` 是壳层，各功能模块的页面与弹窗在 `web/<module>/templates/`，对应脚本与样式在 `web/<module>/static/`，浏览器按 `/static/<module>/...` 加载。修改后刷新浏览器即可验证，多数场景不需要单独前端构建。
 
 ## 路由
 
@@ -41,7 +44,7 @@ go run ./cmd/server --config config.yaml
 2. 在 `internal/database/` 增加必要的数据访问。
 3. 在 `internal/app/app.go` 构造并注册路由。
 4. 如需对外文档，更新 `internal/handler/openapi.go`。
-5. 如需前端调用，更新 `web/static/js/`。
+5. 如需前端调用，更新对应模块的 `web/<module>/static/js/`。
 
 ## 一键更新：让安装目录更新它自己的源码
 
@@ -205,10 +208,12 @@ Skill 放在 `skills/<name>/SKILL.md`。用于提供专题能力、流程说明�
 
 ## 前端开发
 
-前端代码按功能拆分在 `web/static/js/`。新增页面或模块时：
+前端代码按功能模块拆分在 `web/<module>/static/js/`（壳层与通用能力在 `web/core/static/js/`），模块划分与模板/静态加载机制见 [Web 前端模块化重构](web-modularization.md)。新增页面或模块时：
 
+- 在对应模块目录下新增 `templates/<module>_<part>.html`（`{{define "<module>/<part>"}}`）并在 `web/core/templates/index.html` 中用 `{{template "<module>/<part>" .}}` 引入。
+- 新增模块目录时直接建 `web/<module>/{templates,static}`：静态资源按 `/static/<module>/` 自动挂载，模板随目录自动加载。
 - 复用现有 `apiFetch`、modal、通知、i18n 工具。
-- 同步更新 `web/static/i18n/zh-CN.json` 和 `en-US.json`。
+- 同步更新 `web/core/static/i18n/zh-CN.json` 和 `en-US.json`。
 - 避免把敏感 Key 放到前端。
 - 高风险按钮要有确认和清晰状态反馈。
 

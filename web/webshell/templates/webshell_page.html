@@ -1,0 +1,37 @@
+{{define "webshell/page"}}
+<div id="page-webshell" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="webshell.title">WebShell 管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-primary" data-require-permission="webshell:write" onclick="showAddWebshellModal()" data-i18n="webshell.addConnection">添加连接</button>
+                        </div>
+                    </div>
+                    <div class="page-content webshell-page-content">
+                        <div class="webshell-layout">
+                            <div id="webshell-sidebar" class="webshell-sidebar">
+                                <div class="webshell-sidebar-header" data-i18n="webshell.connections">连接列表</div>
+                                <div class="webshell-conn-search">
+                                    <input type="text"
+                                           id="webshell-conn-search"
+                                           class="form-control webshell-conn-search-input"
+                                           data-i18n="webshell.searchPlaceholder"
+                                           data-i18n-attr="placeholder"
+                                           placeholder="搜索连接..." />
+                                </div>
+                                <div class="webshell-sidebar-tools">
+                                    <button type="button" class="btn-ghost btn-sm" id="webshell-batch-probe-btn" data-i18n="webshell.batchProbe">一键批量探活</button>
+                                </div>
+                                <div id="webshell-list" class="webshell-list">
+                                    <div class="webshell-empty" data-i18n="webshell.noConnections">暂无连接，请点击「添加连接」</div>
+                                </div>
+                            </div>
+                            <div id="webshell-resize-handle" class="webshell-resize-handle" title="拖拽调整宽度"></div>
+                            <div class="webshell-main">
+                                <div id="webshell-workspace" class="webshell-workspace">
+                                    <div class="webshell-workspace-placeholder" data-i18n="webshell.selectOrAdd">请从左侧选择连接，或添加新的 WebShell 连接</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

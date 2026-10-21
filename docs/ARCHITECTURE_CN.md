@@ -4,18 +4,112 @@
 
 ---
 
-## 技术栈
+## 技术栈总览
 
 | 层次 | 技术选型 |
 |------|----------|
-| 语言 | Go 1.25 |
-| AI 框架 | CloudWeGo Eino ADK（Agent 编排）|
-| 模型协议 | OpenAI 兼容 / Anthropic Claude |
-| HTTP 框架 | Gin（支持 TLS / HTTP2 / SSE 流式）|
-| 数据库 | SQLite（mattn/go-sqlite3），会话库与知识库可分离部署 |
-| 工具协议 | MCP（Model Context Protocol）官方 Go SDK |
-| 前端 | 原生 JS + HTML 模板，无框架依赖 |
-| 可观测性 | OpenTelemetry + Zap 结构化日志 |
+| 语言 | Go 1.25（后端主体）+ 原生 JavaScript（前端）+ Python（工具脚本）|
+| AI 框架 | CloudWeGo Eino ADK v0.9.21（Agent 编排 / Chain / ReAct）|
+| 模型协议 | OpenAI 兼容 / Anthropic Claude（Eino ext 模型组件）|
+| HTTP 框架 | Gin v1.9.1（支持 TLS / HTTP2 / SSE 流式 / WebSocket）|
+| 数据库 | SQLite（mattn/go-sqlite3，CGO），会话库与知识库可分离部署 |
+| 工具协议 | MCP（Model Context Protocol）官方 Go SDK v1.3.1 |
+| 前端 | 原生 JS + HTML 模板，无框架 / 无构建系统，vendor 库直接引入 |
+| 可观测性 | OpenTelemetry v1.39 + Zap 结构化日志 |
+| 部署 | 单二进制交付，Git fast-forward 自更新 + rebuild |
+
+---
+
+## 后端技术栈（Go）
+
+| 领域 | 关键依赖 | 说明 |
+|------|----------|------|
+| Web 服务 | `gin-gonic/gin` | HTTP 路由、SSE 流式响应、中间件 |
+| JSON 编解码 | `bytedance/sonic` | 高性能 JIT JSON 序列化 |
+| AI Agent 编排 | `cloudwego/eino`、`eino-ext/adk`、`eino-ext/components/model/*` | ADK 主循环、agentic openai/claude 模型组件 |
+| 文档/向量处理 | `eino-ext/components/document/*`、`embedding/openai` | Markdown/递归分块、文件加载、OpenAI Embedding |
+| 工具协议 | `modelcontextprotocol/go-sdk` | 内置 MCP Server + External MCP 客户端 |
+| 数据库 | `mattn/go-sqlite3` | 嵌入式 SQLite（WAL 模式，需 CGO）|
+| Token 计数 | `pkoukk/tiktoken-go` | 上下文预算与 token 用量统计 |
+| PTY 终端 | `creack/pty` | Web 终端 / 交互式命令执行 |
+| 定时任务 | `robfig/cron/v3` | 任务调度、保留期清理 |
+| 认证加密 | `golang.org/x/crypto`、JWT/Cookie | 会话认证、RBAC |
+| 图像处理 | `disintegration/imaging` | 视觉分析图像预处理 |
+| 二维码 | `skip2/go-qrcode` | 机器人接入二维码生成 |
+| 配置 | `gopkg.in/yaml.v3` | 工具/角色/系统配置加载 |
+| 机器人 SDK | `discordgo`、`slack-go/slack`、`larksuite/oapi-sdk-go`、`dingtalk-stream-sdk-go`、`tencent-connect/botgo` | 7 大平台消息接入 |
+| 可观测性 | `go.opentelemetry.io/otel/*`、`go.uber.org/zap` | Trace 导出 + 结构化日志 |
+
+> WebSocket 依赖 `gorilla/websocket`；底层 HTTP 客户端依赖 `go-resty/resty`；OpenAI/Anthropic 官方 SDK 作为间接依赖引入。
+
+---
+
+## 前端技术栈
+
+**特点：零框架、零构建**。使用原生 JavaScript（ES Module）+ HTML 模板直接开发。前端按平台功能模块放在 `web/<module>/` 下，每个模块自带 `templates/` 与 `static/`：模板片段由 Gin 统一解析后通过 `{{template "<module>/<part>" .}}` 组合进 `web/core/templates/index.html` 壳层，静态资源按 `/static/<module>/...` 挂载。
+
+| 类别 | 技术方案 |
+|------|----------|
+| 页面结构 | `web/core/templates/index.html`（壳层主入口）+ 各模块 `web/<module>/templates/*.html` 片段 |
+| 样式 | 原生 CSS（`style.css`、`c2.css`、`mobile.css`），含移动端适配与主题切换 |
+| 路由 | 自研 `router.js`（Hash 路由）|
+| 国际化 | `i18next` + `i18n/*.json`（zh-CN / en-US / ru-RU）|
+| Markdown 渲染 | `marked.min.js` + `DOMPurify`（sanitize-markdown.js）|
+| 终端模拟 | `xterm.js` + fit addon（Web 终端）|
+| 图表/关系图 | `cytoscape.min.js` + `elk.bundled.js`（攻击链 / 事实图自动布局）|
+| 表格导出 | `xlsx.full.min.js`（资产 / 漏洞 Excel 导出）|
+| 功能模块 | 按领域拆分的独立 JS（chat / c2 / assets / knowledge / hitl / monitor / projects / workflows / webshell / rbac / settings 等）|
+
+---
+
+## 数据库与存储
+
+| 存储 | 技术 | 用途 |
+|------|------|------|
+| 会话库 | SQLite（`data/conversations.db`）| 对话历史、C2、RBAC、漏洞、资产、项目黑板、工具执行记录、工作流 |
+| 知识库 | SQLite（`data/knowledge.db`）| RAG 向量索引与知识项（可与会话库分离部署）|
+| 向量检索 | Eino Embedding + 自研 retriever | MultiQuery + 向量检索 + 精排 |
+| 大输出落盘 | 本地文件系统（`data/conversation_artifacts`、工具输出）| 工具结果超阈值时全文落盘，上下文仅留预览 |
+| 运行空间 | `storage` 模块 | 工作区 / 产物垃圾清理 |
+
+> SQLite 通过 `mattn/go-sqlite3` 需 CGO 支持；开启 WAL 模式提升并发读写。
+
+---
+
+## AI / Agent 与大模型
+
+| 维度 | 技术选型 |
+|------|----------|
+| 编排框架 | CloudWeGo Eino ADK（Deep / Plan-Execute / Supervisor / 单 Agent ReAct）|
+| 模型接入 | OpenAI 兼容协议、Anthropic Claude（`agenticopenai` / `agenticclaude` 组件）|
+| 多通道路由 | `internal/llm` 模型路由 + `eino_model_resilience` 重试 / Failover |
+| 上下文管理 | `eino_agentic_summarize` 自动压缩 + `context_budget` Token 预算 |
+| 工具调用 | 统一走 MCP 协议（内置 Server + External 客户端，含熔断限流）|
+| Embedding | OpenAI 兼容 Embedding（知识库索引）|
+
+---
+
+## 工具与扩展生态
+
+| 类型 | 技术 |
+|------|------|
+| 安全工具定义 | 声明式 YAML（`tools/*.yaml`，100+ 工具），executor 动态加载 |
+| 工具脚本 | Python（`requirements.txt`：requests、httpx、impacket、bloodhound、angr、pwntools、mcp 等）|
+| 独立 MCP Server | Go 实现（`mcp-servers/`）|
+| 浏览器插件 | Chrome/Firefox Extension（Manifest V3，原生 JS/HTML）|
+| Burp Suite 插件 | Java/Kotlin（Gradle + Maven 构建）|
+
+---
+
+## 部署与运维
+
+| 方面 | 技术方案 |
+|------|----------|
+| 交付形态 | 单一 Go 二进制（内嵌前端静态资源）|
+| 进程隔离 | Job Object（Windows）/ cgroup（Linux），`processguard` 模块 |
+| 自更新 | Git fast-forward + rebuild + rollback（`update` 模块）|
+| 启动脚本 | `run.sh` / `upgrade.sh`（Linux/macOS）|
+| CI/CD | GitHub Actions（`.github/workflows/`：self-update、process-isolation、context-memory）|
 
 ---
 
@@ -185,8 +279,8 @@ internal/
 | `skills/` | Eino 技能包（每个子目录包含 `SKILL.md`）|
 | `mcp-servers/` | 独立外部 MCP Server 实现（Go 语言）|
 | `knowledge_base/` | 本地知识库文件（Markdown）|
-| `web/static/` | 前端静态资源（JS / CSS / HTML）|
-| `web/templates/` | HTML 模板文件 |
+| `web/core/` | 壳层与通用能力：页面骨架、登录、导航、i18n、vendor、通用样式 |
+| `web/<module>/` | 业务模块（dashboard / chat / security / assets / projects / vulnerabilities / tasks / workflows / webshell / c2 / mcp / skills / tools / agents / roles / knowledge / rbac / settings / api-docs），各自包含 `templates/` 与 `static/` |
 | `plugins/` | 浏览器插件（Chrome / Firefox）和 Burp Suite 插件 |
 | `internal/c2/listeners/` | C2 多协议 Listener 实现 |
 

@@ -1,0 +1,363 @@
+{{define "projects/page"}}
+<div id="page-projects" class="page projects-page">
+                    <div class="page-header">
+                        <h2 data-i18n="projects.title">项目管理</h2>
+                        <div class="page-header-actions">
+                            <label class="projects-show-archived-label"><input type="checkbox" id="projects-show-archived" onchange="loadProjectsList()"> <span data-i18n="projects.showArchived">显示已归档</span></label>
+                            <button class="btn-secondary" type="button" onclick="loadProjectsList()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-primary" type="button" data-require-permission="project:write" onclick="showNewProjectModal()" data-i18n="projects.newProjectCta">+ 新建项目</button>
+                        </div>
+                    </div>
+                    <div class="page-content projects-page-layout">
+                        <aside class="projects-sidebar-card">
+                            <div class="projects-sidebar-head">
+                                <span class="projects-sidebar-title" data-i18n="projects.projectList">项目列表</span>
+                                <span class="projects-sidebar-count" id="projects-list-count">0</span>
+                            </div>
+                            <div class="projects-sidebar-search">
+                                <input type="search" id="projects-list-search" class="form-input" placeholder="搜索项目…" oninput="filterProjectsList()" autocomplete="off" data-i18n="projects.searchProjectsPlaceholder" data-i18n-attr="placeholder">
+                            </div>
+                            <div id="projects-list" class="projects-list"></div>
+                            <div id="projects-pagination" class="sidebar-list-pagination projects-sidebar-pagination"></div>
+                        </aside>
+                        <main class="projects-detail" id="projects-detail-main">
+                            <div class="projects-detail-placeholder" id="projects-detail-placeholder">
+                                <div class="projects-placeholder-icon" aria-hidden="true">
+                                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="3" y="4" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M3 9h18M8 4V9M16 4V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h3 data-i18n="projects.selectOrCreateTitle">选择或创建项目</h3>
+                                <p data-i18n="projects.selectOrCreateHint">项目用于跨对话共享「事实黑板」：目标、环境、认证等信息会在绑定项目的对话中自动注入。</p>
+                                <button class="btn-primary" type="button" data-require-permission="project:write" onclick="showNewProjectModal()" data-i18n="projects.createFirstProject">创建第一个项目</button>
+                            </div>
+                            <div class="projects-detail-inner" id="projects-detail-inner" hidden>
+                                <header class="projects-detail-header">
+                                    <div class="projects-detail-header-main">
+                                        <div class="projects-detail-headline">
+                                            <div class="projects-detail-title-group">
+                                                <h3 id="projects-detail-title" class="projects-detail-title" data-i18n="projects.defaultProjectName">项目</h3>
+                                                <span id="projects-detail-status" class="projects-status-pill projects-status-pill--active" data-i18n="projects.statusActive">进行中</span>
+                                            </div>
+                                            <div class="projects-detail-stats" id="projects-detail-stats">
+                                                <span class="projects-stat-chip projects-stat-chip--facts" id="project-stat-facts">0 条事实</span>
+                                                <span class="projects-stat-chip projects-stat-chip--vulns" id="project-stat-vulns">0 个漏洞</span>
+                                                <span class="projects-stat-chip projects-stat-chip--conversations" id="project-stat-conversations">0 个对话</span>
+                                                <span class="projects-stat-chip projects-stat-chip--warn" id="project-stat-sparse" hidden>0 待补全</span>
+                                            </div>
+                                        </div>
+                                        <p id="projects-detail-desc" class="projects-detail-desc" hidden></p>
+                                    </div>
+                                    <div class="projects-detail-header-actions">
+                                        <span id="projects-detail-meta" class="projects-detail-meta" aria-live="polite">
+                                            <svg class="projects-detail-meta-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <span id="projects-detail-meta-time" class="projects-detail-meta-time"></span>
+                                        </span>
+                                        <button type="button" class="btn-secondary btn-small" onclick="openVulnerabilitiesForProject()" data-i18n="projects.vulnerabilityManagement">漏洞管理</button>
+                                        <button type="button" class="btn-primary btn-small" data-require-permission="project:write" onclick="showAddFactModal()" data-i18n="projects.addFactCta">+ 添加事实</button>
+                                    </div>
+                                </header>
+                                <nav class="projects-tabs" role="tablist">
+                                    <button type="button" id="project-tab-facts" class="projects-tab is-active" role="tab" onclick="switchProjectTab('facts')" data-i18n="projects.tabFacts">事实黑板</button>
+                                    <button type="button" id="project-tab-graph" class="projects-tab" role="tab" onclick="switchProjectTab('graph')" data-i18n="projects.tabGraph">攻击路径</button>
+                                    <button type="button" id="project-tab-assets" class="projects-tab" role="tab" data-require-permission="asset:read" onclick="switchProjectTab('assets')" data-i18n="projects.tabAssets">资产库</button>
+                                    <button type="button" id="project-tab-conversations" class="projects-tab" role="tab" onclick="switchProjectTab('conversations')" data-i18n="projects.tabConversations">关联对话</button>
+                                    <button type="button" id="project-tab-vulns" class="projects-tab" role="tab" onclick="switchProjectTab('vulns')" data-i18n="projects.tabVulns">关联漏洞</button>
+                                    <button type="button" id="project-tab-settings" class="projects-tab" role="tab" onclick="switchProjectTab('settings')" data-i18n="projects.tabSettings">设置</button>
+                                </nav>
+                                <div id="project-panel-facts" class="projects-panel" role="tabpanel">
+                                    <div class="projects-fact-toolbar">
+                                        <div class="projects-fact-toolbar-filters" role="search">
+                                            <label class="projects-fact-filter-field projects-fact-filter-field--search">
+                                                <span class="projects-fact-filter-label" data-i18n="common.search">搜索</span>
+                                                <svg class="projects-fact-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M20 20L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <input type="search" id="project-facts-search" placeholder="搜索 key、摘要、body…" oninput="debouncedLoadProjectFacts()" autocomplete="off" data-i18n="projects.searchFactsPlaceholder" data-i18n-attr="placeholder">
+                                            </label>
+                                            <label class="projects-fact-filter-field">
+                                                <span class="projects-fact-filter-label" data-i18n="projects.category">分类</span>
+                                                <select id="project-facts-filter-category" class="projects-filter-select-native">
+                                                    <option value="" data-i18n="projects.all">全部</option>
+                                                    <option value="target">target</option>
+                                                    <option value="auth">auth</option>
+                                                    <option value="infra">infra</option>
+                                                    <option value="business">business</option>
+                                                    <option value="finding">finding</option>
+                                                    <option value="chain">chain</option>
+                                                    <option value="exploit">exploit</option>
+                                                    <option value="poc">poc</option>
+                                                    <option value="note">note</option>
+                                                </select>
+                                            </label>
+                                            <label class="projects-fact-filter-field">
+                                                <span class="projects-fact-filter-label" data-i18n="projects.confidence">置信度</span>
+                                                <select id="project-facts-filter-confidence" class="projects-filter-select-native">
+                                                    <option value="" data-i18n="projects.all">全部</option>
+                                                    <option value="confirmed" data-i18n="projects.confidenceConfirmed">已确认</option>
+                                                    <option value="tentative" data-i18n="projects.confidenceTentative">待确认</option>
+                                                    <option value="deprecated" data-i18n="projects.confidenceDeprecated">已废弃</option>
+                                                </select>
+                                            </label>
+                                            <div class="projects-fact-filter-toggles" role="group" aria-label="显示选项" data-i18n="projects.displayOptions" data-i18n-attr="aria-label">
+                                                <label class="projects-fact-toggle">
+                                                    <input type="checkbox" id="project-facts-filter-sparse" onchange="loadProjectFacts()">
+                                                    <span data-i18n="projects.sparseOnly">仅待补全</span>
+                                                </label>
+                                                <label class="projects-fact-toggle">
+                                                    <input type="checkbox" id="project-facts-filter-hide-deprecated" checked onchange="loadProjectFacts()">
+                                                    <span data-i18n="projects.hideDeprecated">隐藏废弃</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="projects-table-wrap">
+                                        <table class="data-table data-table--projects">
+                                            <thead><tr><th>Key</th><th data-i18n="projects.category">分类</th><th data-i18n="projects.summary">摘要</th><th data-i18n="projects.linksColumn">关系</th><th>Body</th><th data-i18n="projects.confidence">置信度</th><th data-i18n="projects.updated">更新</th><th class="col-actions" data-i18n="common.actions">操作</th></tr></thead>
+                                            <tbody id="project-facts-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="project-panel-graph" class="projects-panel projects-panel--graph" role="tabpanel" hidden>
+                                    <div class="projects-fact-toolbar projects-graph-toolbar">
+                                        <div class="projects-fact-toolbar-filters projects-graph-toolbar-row">
+                                            <label class="projects-fact-filter-field">
+                                                <span class="projects-fact-filter-label" data-i18n="projects.graphView">视图</span>
+                                                <select id="project-graph-view" class="projects-filter-select-native">
+                                                    <option value="path" data-i18n="projects.graphViewPath">攻击路径</option>
+                                                    <option value="full" data-i18n="projects.graphViewFull">完整关系</option>
+                                                </select>
+                                            </label>
+                                            <label class="projects-fact-filter-field projects-fact-filter-field--search projects-graph-search-field">
+                                                <span class="projects-fact-filter-label" data-i18n="common.search">搜索</span>
+                                                <svg class="projects-fact-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M20 20L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <input type="search" id="project-graph-search" placeholder="搜索节点…" oninput="filterProjectFactGraph()" autocomplete="off" data-i18n="projects.graphSearchPlaceholder" data-i18n-attr="placeholder">
+                                            </label>
+                                            <div class="projects-graph-actions" role="group" aria-label="Graph actions">
+                                                <button type="button" class="projects-graph-action-btn" onclick="loadProjectFactGraph()" title="刷新" data-i18n="projects.graphRefresh" data-i18n-attr="title">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 3v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    <span data-i18n="projects.graphRefresh">刷新</span>
+                                                </button>
+                                                <button type="button" class="projects-graph-action-btn" onclick="centerProjectFactGraph()" title="居中" data-i18n="projects.graphCenter" data-i18n-attr="title">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                    <span data-i18n="projects.graphCenter">居中</span>
+                                                </button>
+                                                <button type="button" class="projects-graph-action-btn projects-graph-action-btn--connect" data-require-permission="project:write" id="project-graph-connect-btn" onclick="toggleProjectFactGraphConnectMode()" data-i18n="projects.graphConnect">连边</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="project-fact-graph-layout">
+                                        <div id="project-fact-graph-container" class="project-fact-graph-container"></div>
+                                        <aside id="project-fact-graph-sidebar" class="project-fact-graph-sidebar" hidden>
+                                            <div class="project-fact-graph-sidebar-header">
+                                                <div class="project-fact-graph-sidebar-title-wrap">
+                                                    <span id="project-fact-graph-node-category" class="project-fact-graph-node-category"></span>
+                                                    <h4 id="project-fact-graph-node-title">—</h4>
+                                                </div>
+                                                <button type="button" class="project-fact-graph-sidebar-close" onclick="closeProjectFactGraphSidebar()" aria-label="关闭" data-i18n="common.close" data-i18n-attr="aria-label">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                </button>
+                                            </div>
+                                            <p id="project-fact-graph-node-meta" class="project-fact-graph-node-meta"></p>
+                                            <div id="project-fact-graph-edges-wrap" class="project-fact-graph-edges-wrap" hidden>
+                                                <h5 class="project-fact-graph-edges-title" data-i18n="projects.graphEdgesTitle">关系边</h5>
+                                                <p class="project-fact-graph-edges-hint" data-i18n="projects.graphEdgesHint">箭头方向与数据库/编辑弹窗一致（source → target）；点击连线可定位。</p>
+                                                <div id="project-fact-graph-edges-list" class="project-fact-graph-edges-list"></div>
+                                            </div>
+                                            <div class="project-fact-graph-sidebar-actions">
+                                                <button type="button" class="btn-primary btn-small" id="project-fact-graph-detail-btn" onclick="openSelectedGraphFactDetail()" data-i18n="projects.details">详情</button>
+                                                <button type="button" class="btn-secondary btn-small" data-require-permission="project:write" id="project-fact-graph-edit-btn" onclick="editSelectedGraphFact()" data-i18n="common.edit">编辑</button>
+                                            </div>
+                                        </aside>
+                                    </div>
+                                    <div class="project-fact-graph-footer">
+                                        <div id="project-fact-graph-stats" class="project-fact-graph-stats"></div>
+                                        <div class="projects-graph-legend" role="group" aria-label="Graph legend">
+                                            <div class="projects-graph-legend-group">
+                                                <span class="projects-graph-legend-heading" data-i18n="projects.graphLegendNodes">节点</span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node"><i style="--legend-color:#4F46E5;--legend-bg:#F5F3FF"></i><span data-i18n="projects.graphLegendNodeTarget">TARGET · 目标</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node"><i style="--legend-color:#64748B;--legend-bg:#F8FAFC"></i><span data-i18n="projects.graphLegendNodeInfra">INFRA · 基础设施</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node"><i style="--legend-color:#E11D48;--legend-bg:#FFF1F2"></i><span data-i18n="projects.graphLegendNodeFinding">FINDING · 发现</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node"><i style="--legend-color:#9333EA;--legend-bg:#F5F3FF"></i><span data-i18n="projects.graphLegendNodeVuln">VULN · 漏洞</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node"><i style="--legend-color:#B45309;--legend-bg:#FFFBEB"></i><span data-i18n="projects.graphLegendNodeExploit">EXPLOIT · 利用</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--node projects-graph-legend-item--node-dashed"><i style="--legend-color:#CBD5E1;--legend-bg:#F1F5F9"></i><span data-i18n="projects.graphLegendNodeMissing">MISSING · 缺失</span></span>
+                                            </div>
+                                            <span class="projects-graph-legend-divider" aria-hidden="true"></span>
+                                            <div class="projects-graph-legend-group">
+                                                <span class="projects-graph-legend-heading" data-i18n="projects.graphLegendEdges">连线</span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--edge"><i style="--legend-color:#4F46E5"></i><span data-i18n="projects.graphLegendDiscovered">discovered_on</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--edge"><i style="--legend-color:#64748B"></i><span data-i18n="projects.graphLegendLeads">leads_to</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--edge"><i style="--legend-color:#DC2626"></i><span data-i18n="projects.graphLegendExploits">exploits</span></span>
+                                                <span class="projects-graph-legend-item projects-graph-legend-item--edge projects-graph-legend-item--dashed"><i style="--legend-color:#94A3B8"></i><span data-i18n="projects.graphLegendTentative">待确认（虚线）</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="project-panel-assets" class="projects-panel" role="tabpanel" hidden>
+                                    <div class="projects-table-wrap projects-table-wrap--with-pagination">
+                                        <table class="data-table data-table--projects">
+                                            <thead><tr><th data-i18n="assets.target">目标</th><th data-i18n="assets.service">服务</th><th data-i18n="assets.title">标题/指纹</th><th data-i18n="assets.source">来源</th><th data-i18n="assets.lastSeen">最近发现</th><th data-i18n="assets.status">状态</th><th class="col-actions" data-i18n="common.actions">操作</th></tr></thead>
+                                            <tbody id="project-assets-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="project-assets-pagination" class="pagination-container pagination-fixed projects-panel-pagination"></div>
+                                </div>
+                                <div id="project-panel-conversations" class="projects-panel" role="tabpanel" hidden>
+                                    <div class="projects-table-wrap">
+                                        <table class="data-table data-table--projects">
+                                            <thead><tr><th data-i18n="projects.titleLabel">标题</th><th data-i18n="projects.updated">更新</th><th class="col-actions" data-i18n="common.actions">操作</th></tr></thead>
+                                            <tbody id="project-conversations-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="project-panel-vulns" class="projects-panel" role="tabpanel" hidden>
+                                    <div class="projects-fact-toolbar">
+                                        <div class="projects-fact-toolbar-filters projects-vuln-toolbar-filters" role="search">
+                                            <label class="projects-fact-filter-field projects-fact-filter-field--search">
+                                                <span class="projects-fact-filter-label" data-i18n="common.search">搜索</span>
+                                                <svg class="projects-fact-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M20 20L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <input type="search" id="project-vulns-search" placeholder="搜索标题、描述、类型、目标…" oninput="debouncedLoadProjectVulnerabilities()" autocomplete="off" data-i18n="projects.searchVulnsPlaceholder" data-i18n-attr="placeholder">
+                                            </label>
+                                            <label class="projects-fact-filter-field">
+                                                <span class="projects-fact-filter-label" data-i18n="projects.severity">严重度</span>
+                                                <select id="project-vulns-filter-severity" class="projects-filter-select-native">
+                                                    <option value="" data-i18n="projects.all">全部</option>
+                                                    <option value="critical">critical</option>
+                                                    <option value="high">high</option>
+                                                    <option value="medium">medium</option>
+                                                    <option value="low">low</option>
+                                                    <option value="info">info</option>
+                                                </select>
+                                            </label>
+                                            <label class="projects-fact-filter-field">
+                                                <span class="projects-fact-filter-label" data-i18n="projects.status">状态</span>
+                                                <select id="project-vulns-filter-status" class="projects-filter-select-native">
+                                                    <option value="" data-i18n="projects.all">全部</option>
+                                                    <option value="open" data-i18n="vulnerabilityPage.statusOpen">待处理</option>
+                                                    <option value="confirmed" data-i18n="vulnerabilityPage.statusConfirmed">已确认</option>
+                                                    <option value="fixed" data-i18n="vulnerabilityPage.statusFixed">已修复</option>
+                                                    <option value="ignored" data-i18n="vulnerabilityPage.statusIgnored">已忽略</option>
+                                                    <option value="false_positive" data-i18n="vulnerabilityPage.statusFalsePositive">误报</option>
+                                                </select>
+                                            </label>
+                                            <button type="button" class="btn-secondary btn-small projects-vuln-toolbar-action" onclick="openVulnerabilitiesForProject()" data-i18n="projects.viewInVulnerabilityManagement">在漏洞管理中查看</button>
+                                        </div>
+                                    </div>
+                                    <div class="projects-table-wrap">
+                                        <table class="data-table data-table--projects">
+                                            <thead><tr><th data-i18n="projects.titleLabel">标题</th><th data-i18n="projects.severity">严重度</th><th data-i18n="projects.status">状态</th><th class="col-actions" data-i18n="common.actions">操作</th></tr></thead>
+                                            <tbody id="project-vulns-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="project-panel-settings" class="projects-panel projects-panel--settings" role="tabpanel" hidden>
+                                    <div class="projects-settings-layout">
+                                        <header class="projects-settings-intro">
+                                            <div class="projects-settings-intro-text">
+                                                <h4 class="projects-settings-intro-title" data-i18n="projects.settingsIntroTitle">项目设置</h4>
+                                                <p class="projects-settings-intro-hint" data-i18n="projects.settingsIntroHint">配置项目元数据与 Agent 授权边界，保存后即时生效于绑定对话。</p>
+                                            </div>
+                                        </header>
+                                        <div class="projects-settings-grid">
+                                            <section class="projects-settings-card projects-settings-card--basic">
+                                                <div class="projects-settings-card-head">
+                                                    <div class="projects-settings-card-head-left">
+                                                        <span class="projects-settings-icon projects-settings-icon--blue" aria-hidden="true">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                                        </span>
+                                                        <div>
+                                                            <h4 class="projects-settings-card-title" data-i18n="projects.basicInfoTitle">基本信息</h4>
+                                                            <p class="projects-settings-card-hint" data-i18n="projects.basicInfoHint">名称与描述会显示在项目详情中</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="projects-settings-card-body">
+                                                    <div class="projects-form-row projects-form-row--2">
+                                                        <div class="projects-form-field">
+                                                            <label for="project-edit-name" data-i18n="projects.projectName">项目名称</label>
+                                                            <input type="text" id="project-edit-name" class="form-input" placeholder="例如：某客户 Web 渗透" data-i18n="projects.projectNamePlaceholder" data-i18n-attr="placeholder">
+                                                        </div>
+                                                        <div class="projects-form-field">
+                                                            <label for="project-edit-status" data-i18n="projects.status">状态</label>
+                                                            <div class="projects-status-select-wrap">
+                                                                <select id="project-edit-status" class="form-input projects-status-select projects-filter-select-native">
+                                                                    <option value="active" data-i18n="projects.statusActive">进行中</option>
+                                                                    <option value="archived" data-i18n="projects.statusArchived">已归档</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="projects-form-field">
+                                                        <label class="projects-filter-check projects-pin-toggle">
+                                                            <input type="checkbox" id="project-edit-pinned"> <span data-i18n="projects.pinProject">置顶项目（列表优先显示）</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="projects-form-field">
+                                                        <label for="project-edit-description" data-i18n="projects.projectDescription">描述</label>
+                                                        <textarea id="project-edit-description" class="form-input projects-description-textarea" rows="3" maxlength="4000" placeholder="客户/任务备注、协作说明、联系人…" data-i18n="projects.editDescriptionPlaceholder" data-i18n-attr="placeholder"></textarea>
+                                                        <small class="form-hint" data-i18n="projects.descriptionLengthHint">仅供团队成员查阅，Agent 不会读取；简要说明即可（最多 4000 字）。需让 Agent 知晓的内容请写入事实黑板</small>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                            <section class="projects-settings-card projects-settings-card--scope">
+                                                <div class="projects-settings-card-head">
+                                                    <div class="projects-settings-card-head-left">
+                                                        <span class="projects-settings-icon projects-settings-icon--violet" aria-hidden="true">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                                        </span>
+                                                        <div>
+                                                            <h4 class="projects-settings-card-title" data-i18n="projects.scopeTitle">测试范围</h4>
+                                                            <p class="projects-settings-card-hint" data-i18n="projects.scopeHint">JSON 格式，供 Agent 理解授权边界与目标资产</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="projects-scope-toolbar">
+                                                        <button type="button" class="btn-ghost btn-small" onclick="formatProjectScopeJson()" title="格式化 JSON" data-i18n="projects.formatJson" data-i18n-attr="title">格式化</button>
+                                                        <button type="button" class="btn-ghost btn-small" onclick="insertProjectScopeExample()" title="插入示例" data-i18n="projects.example" data-i18n-attr="title">示例</button>
+                                                    </div>
+                                                </div>
+                                                <div class="projects-settings-card-body projects-settings-card-body--fill">
+                                                    <div class="projects-scope-editor">
+                                                        <label for="project-edit-scope" class="sr-only" data-i18n="projects.scopeJsonLabel">范围 JSON</label>
+                                                        <textarea id="project-edit-scope" class="form-input form-input--mono projects-scope-textarea" spellcheck="false" placeholder='{"targets":["https://example.com"],"exclude":["*.cdn.example.com"]}'></textarea>
+                                                    </div>
+                                                    <p class="projects-scope-footnote" data-i18n="projects.scopeFootnote">支持 targets、exclude、notes 等字段，留空表示不限制范围。</p>
+                                                </div>
+                                            </section>
+                                        </div>
+                                        <section class="projects-settings-card projects-settings-card--danger">
+                                            <div class="projects-settings-danger-main">
+                                                <span class="projects-settings-icon projects-settings-icon--red" aria-hidden="true">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                                </span>
+                                                <div>
+                                                    <h4 class="projects-settings-card-title" data-i18n="projects.dangerZoneTitle">危险操作</h4>
+                                                    <p class="projects-settings-card-hint" data-i18n="projects.dangerZoneHint">归档后需在列表勾选「显示已归档」才能查看；删除将清除全部事实且不可恢复。</p>
+                                                </div>
+                                            </div>
+                                            <div class="projects-settings-danger-actions">
+                                                <button class="btn-secondary btn-small" data-require-permission="project:write" type="button" onclick="archiveCurrentProject()" data-i18n="projects.archiveRestore">归档 / 恢复</button>
+                                                <button class="btn-secondary btn-small btn-danger-outline" data-require-permission="project:delete" type="button" onclick="deleteCurrentProject()" data-i18n="projects.deleteProject">删除项目</button>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <footer class="projects-settings-footer">
+                                        <span class="projects-settings-footer-hint" data-i18n="projects.saveChangesHint">修改后请点击保存以同步到服务器</span>
+                                        <button class="btn-primary" data-require-permission="project:write" type="button" onclick="saveProjectSettings()">
+                                            <span data-i18n="projects.saveSettings">保存更改</span>
+                                        </button>
+                                    </footer>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+{{end}}

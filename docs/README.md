@@ -16,6 +16,7 @@ CyberStrikeAI documentation is organized by user journey. Start with deployment,
 ### 核心概念与编排
 
 - [架构说明](zh-CN/architecture.md)
+- [Web 前端模块化重构](zh-CN/web-modularization.md)
 - [安全模型](zh-CN/security-model.md)
 - [Agent 与角色](zh-CN/agent-and-role-guide.md)
 - [Skills 指南](zh-CN/skills-guide.md)

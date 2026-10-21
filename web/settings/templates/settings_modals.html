@@ -1,0 +1,75 @@
+{{define "settings/modals"}}
+<div id="robot-account-binding-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="robot-account-binding-title">
+        <div class="modal-content robot-account-binding-content">
+            <div class="modal-header robot-binding-header">
+                <div class="robot-binding-heading">
+                    <span class="robot-binding-heading-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </span>
+                    <div>
+                        <h2 id="robot-account-binding-title">绑定机器人账号</h2>
+                        <p>将 IM 平台身份安全关联到当前 RBAC 用户</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close" onclick="closeRobotAccountBinding()" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body robot-binding-body">
+                <div class="robot-binding-guide">
+                    <span class="robot-binding-guide-number">1</span><span>生成一次性绑定码</span>
+                    <span class="robot-binding-guide-arrow">→</span>
+                    <span class="robot-binding-guide-number">2</span><span>在机器人中发送绑定命令</span>
+                    <span class="robot-binding-guide-arrow">→</span>
+                    <span class="robot-binding-guide-number">3</span><span>立即继承当前用户权限</span>
+                </div>
+
+                <section id="robot-binding-code-card" class="robot-binding-code-card is-empty">
+                    <div class="robot-binding-code-meta">
+                        <span class="robot-binding-one-time-badge">一次性安全码</span>
+                        <span id="robot-binding-code-state" class="robot-binding-state">等待生成</span>
+                    </div>
+                    <div class="robot-binding-code-row">
+                        <code id="robot-binding-code">••••-••••</code>
+                        <div class="robot-binding-code-actions">
+                            <button type="button" class="btn-primary" id="robot-binding-generate-btn" onclick="generateRobotBindingCode()">生成绑定码</button>
+                            <button type="button" class="btn-secondary robot-binding-copy-btn" id="robot-binding-copy-btn" onclick="copyRobotBindingCode()" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/></svg>
+                                <span>复制命令</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="robot-binding-timer" class="robot-binding-timer" hidden>
+                        <div class="robot-binding-timer-copy">
+                            <span id="robot-binding-expiry">请在机器人中发送绑定命令</span>
+                            <strong id="robot-binding-countdown">05:00</strong>
+                        </div>
+                        <div class="robot-binding-progress" aria-hidden="true"><span id="robot-binding-progress-bar"></span></div>
+                    </div>
+                    <p class="robot-binding-security-note">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        绑定码仅保存哈希、只能使用一次，新码会使旧码立即失效
+                    </p>
+                </section>
+
+                <section class="robot-binding-list-section">
+                    <div class="robot-binding-section-heading">
+                        <div>
+                            <h3>已绑定平台账号</h3>
+                            <p>这些平台身份可使用当前用户的实时 RBAC 权限</p>
+                        </div>
+                        <button type="button" class="btn-secondary btn-small" onclick="loadRobotAccountBindings()">刷新</button>
+                    </div>
+                    <div id="robot-account-binding-list" class="robot-account-binding-list"><div class="robot-binding-list-loading">正在加载绑定信息…</div></div>
+                </section>
+            </div>
+            <div class="modal-footer robot-binding-footer">
+                <div class="robot-binding-service-hint">
+                    <span class="robot-binding-service-hint-icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.74v.5a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>
+                    </span>
+                    <span>如需配置专用服务账号，请前往“系统设置 → 机器人设置”。</span>
+                </div>
+                <button type="button" class="btn-secondary" onclick="closeRobotAccountBinding()">关闭</button>
+            </div>
+        </div>
+    </div>
+{{end}}

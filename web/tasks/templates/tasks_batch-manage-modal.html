@@ -1,0 +1,43 @@
+{{define "tasks/batch-manage-modal"}}
+<div id="batch-manage-modal" class="modal">
+        <div class="modal-content batch-manage-modal-content">
+            <div class="modal-header">
+                <h2 id="batch-manage-title">管理对话记录·共<span id="batch-manage-count">0</span>条</h2>
+                <div class="batch-manage-header-actions">
+                    <select id="batch-project-filter" class="conversation-project-filter-native" onchange="applyBatchConversationFilters()" data-i18n="batchManageModal.filterByProject" data-i18n-attr="title" title="按项目筛选">
+                        <option value="" data-i18n="chat.filterAllProjects">全部项目</option>
+                        <option value="__none__" data-i18n="chat.filterUnboundProjects">未绑定项目</option>
+                    </select>
+                    <div class="batch-search-box">
+                        <input type="text" id="batch-search-input" data-i18n="batchManageModal.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索历史记录" oninput="filterBatchConversations(this.value)" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="modal-close" onclick="closeBatchManageModal()">&times;</span>
+                </div>
+            </div>
+            <div class="modal-body batch-manage-body">
+                <div class="batch-conversations-table">
+                    <div class="batch-table-header">
+                        <div class="batch-table-col-checkbox">
+                            <input type="checkbox" id="batch-select-all" class="theme-checkbox" onchange="toggleSelectAllBatch()" data-i18n="batchManageModal.selectAll" data-i18n-attr="title" title="全选" />
+                        </div>
+                        <div class="batch-table-col-name" data-i18n="batchManageModal.conversationName">对话名称</div>
+                        <div class="batch-table-col-project" data-i18n="batchManageModal.project">项目</div>
+                        <div class="batch-table-col-time" data-i18n="batchManageModal.lastTime">最近一次对话时间</div>
+                        <div class="batch-table-col-action" data-i18n="batchManageModal.action">操作</div>
+                    </div>
+                    <div id="batch-conversations-list" class="batch-conversations-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer batch-manage-footer">
+                <div class="batch-footer-actions">
+                    <button class="btn-secondary" onclick="closeBatchManageModal()" data-i18n="common.cancel">取消</button>
+                    <button class="btn-primary" data-require-permission="chat:delete" onclick="deleteSelectedConversations()" data-i18n="batchManageModal.deleteSelected">删除所选</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

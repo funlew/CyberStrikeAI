@@ -1,0 +1,137 @@
+{{define "workflows/page"}}
+<div id="page-workflows" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="workflows.title">工作流</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" onclick="refreshWorkflows()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-secondary" data-require-permission="workflow:write" type="button" onclick="openWorkflowPackageImportModal()" data-i18n="workflows.package.importLocal">导入本地包</button>
+                            <button class="btn-secondary" data-require-permission="workflow:write" type="button" onclick="openWorkflowAiModal()" data-i18n="workflows.ai.open">用自然语言创建</button>
+                            <button class="btn-primary" onclick="newWorkflowDraft()" data-i18n="workflows.newGraph">新建工作流</button>
+                        </div>
+                    </div>
+                    <div class="page-content workflow-page-content">
+                        <aside class="workflow-sidebar">
+                            <div class="workflow-panel">
+                                <div class="workflow-panel-header">
+                                    <h3 data-i18n="workflows.processLibrary">工作流列表</h3>
+                                </div>
+                                <div id="workflow-list" class="workflow-list">
+                                    <div class="loading-spinner" data-i18n="common.loading">加载中...</div>
+                                </div>
+                            </div>
+                            <div class="workflow-panel">
+                                <div class="workflow-panel-header">
+                                    <h3 data-i18n="workflows.nodeLibrary">节点库</h3>
+                                </div>
+                                <div class="workflow-node-palette">
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="start" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('start')" data-i18n="workflows.nodes.start">开始</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="tool" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('tool')" data-i18n="workflows.nodes.tool">工具</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="agent" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('agent')" data-i18n="workflows.nodes.agent">Agent</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="condition" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('condition')" data-i18n="workflows.nodes.condition">条件</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="hitl" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('hitl')" data-i18n="workflows.nodes.hitl">审批</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="output" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('output')" data-i18n="workflows.nodes.output">输出</button>
+                                    <button type="button" draggable="true" data-require-permission="workflow:write" data-node-type="end" ondragstart="workflowPaletteDragStart(event)" onclick="addWorkflowNodeFromPalette('end')" data-i18n="workflows.nodes.end">结束</button>
+                                </div>
+                            </div>
+                        </aside>
+                        <main class="workflow-main">
+                            <section class="workflow-meta-bar">
+                                <div class="workflow-canvas-header">
+                                    <div class="workflow-canvas-heading">
+                                        <h3 id="workflow-canvas-title" class="workflow-canvas-title" data-i18n="workflows.untitled">未命名工作流</h3>
+                                        <span id="workflow-canvas-subtitle" class="workflow-canvas-subtitle" hidden></span>
+                                    </div>
+                                </div>
+                                <div class="workflow-toolbar" role="toolbar" aria-label="工作流编辑工具" data-i18n="workflows.toolbarLabel" data-i18n-attr="aria-label" data-i18n-skip-text="true">
+                                    <div class="workflow-toolbar-group" role="group" aria-label="画布工具" data-i18n="workflows.canvasTools" data-i18n-attr="aria-label" data-i18n-skip-text="true">
+                                        <button class="btn-secondary btn-small workflow-toolbar-button" data-require-permission="workflow:write" type="button" onclick="toggleWorkflowConnectMode()" id="workflow-connect-btn" aria-pressed="false">
+                                            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 8l8 8"/></svg>
+                                            <span class="workflow-toolbar-label" data-i18n="workflows.connect">连线</span>
+                                        </button>
+                                        <button class="btn-secondary btn-small workflow-toolbar-button" type="button" onclick="layoutWorkflowGraph()">
+                                            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="6" height="5" rx="1"/><rect x="14" y="16" width="6" height="5" rx="1"/><path d="M7 8v4h10v4"/></svg>
+                                            <span class="workflow-toolbar-label" data-i18n="workflows.autoLayout">自动布局</span>
+                                        </button>
+                                    </div>
+                                    <button class="btn-secondary btn-small workflow-toolbar-button workflow-run-button" data-require-permission="workflow:execute" type="button" onclick="dryRunWorkflowDraft()">
+                                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.4v13.2a1 1 0 0 0 1.55.84l9.2-6.6a1 1 0 0 0 0-1.68l-9.2-6.6A1 1 0 0 0 8 5.4Z"/></svg>
+                                        <span class="workflow-toolbar-label" data-i18n="workflows.dryRun">试运行</span>
+                                    </button>
+                                    <button class="btn-secondary btn-small workflow-toolbar-button workflow-ai-button" data-require-permission="workflow:write" type="button" onclick="openWorkflowAiModal()">
+                                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z"/></svg>
+                                        <span class="workflow-toolbar-label" data-i18n="workflows.ai.generate">生成草稿</span>
+                                    </button>
+                                    <details class="workflow-more-actions" id="workflow-more-actions" data-require-permission-any="workflow:read workflow:delete">
+                                        <summary class="btn-secondary btn-small workflow-more-actions-trigger" aria-haspopup="menu">
+                                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                                            <span class="workflow-toolbar-label" data-i18n="workflows.moreActions">更多</span>
+                                        </summary>
+                                        <div class="workflow-more-actions-menu" role="menu">
+                                            <button data-require-permission="workflow:read" type="button" id="workflow-package-export-btn" role="menuitem" onclick="closeWorkflowMoreActions(); exportCurrentWorkflowPackage()">
+                                                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
+                                                <span data-i18n="workflows.package.export">导出</span>
+                                            </button>
+                                            <div class="workflow-more-actions-divider" role="separator"></div>
+                                            <button class="workflow-more-actions-danger" data-require-permission="workflow:delete" type="button" role="menuitem" onclick="closeWorkflowMoreActions(); deleteCurrentWorkflow()">
+                                                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7"/><path d="M10 11v5m4-5v5"/></svg>
+                                                <span data-i18n="workflows.deleteWorkflow">删除工作流</span>
+                                            </button>
+                                        </div>
+                                    </details>
+                                    <button class="btn-primary btn-small workflow-save-button" data-require-permission="workflow:write" type="button" onclick="saveWorkflowDraft()">
+                                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4M8 20v-6h8v6"/></svg>
+                                        <span data-i18n="common.save">保存</span>
+                                    </button>
+                                </div>
+                            </section>
+                            <section class="workflow-canvas-wrap" ondragover="workflowCanvasDragOver(event)" ondrop="workflowCanvasDrop(event)">
+                                <div id="workflow-canvas"></div>
+                                <div id="workflow-canvas-empty" class="workflow-canvas-empty" data-i18n="workflows.canvasEmpty">从左侧拖拽节点到画布，或用自然语言生成工作流</div>
+                                <div id="workflow-ai-canvas-status" class="workflow-ai-canvas-status" hidden data-i18n="workflows.ai.canvasRendering">AI 正在编排画布…</div>
+                            </section>
+                        </main>
+                        <aside class="workflow-properties">
+                            <div class="workflow-panel-header">
+                                <h3 id="workflow-property-title" data-i18n="workflows.properties">属性</h3>
+                                <button type="button" id="workflow-property-delete-btn" class="btn-secondary btn-small" data-require-permission="workflow:delete" onclick="deleteWorkflowSelection()" hidden data-i18n="common.delete">删除</button>
+                            </div>
+                            <div id="workflow-property-empty" class="workflow-property-empty" data-i18n="workflows.propertyEmpty">选择一个节点或连线后编辑属性</div>
+                            <div id="workflow-property-form" class="workflow-property-form" hidden>
+                                <div class="form-group">
+                                    <label for="workflow-prop-label" data-i18n="workflows.propLabel">名称</label>
+                                    <input type="text" id="workflow-prop-label" class="form-input" oninput="updateWorkflowSelectedProperty()">
+                                </div>
+                                <div class="form-group" id="workflow-prop-type-wrap">
+                                    <label for="workflow-prop-type" data-i18n="workflows.propType">类型</label>
+                                    <select id="workflow-prop-type" class="workflow-form-select-native" onchange="updateWorkflowSelectedProperty()">
+                                        <option value="start" data-i18n="workflows.nodes.start">开始</option>
+                                        <option value="tool" data-i18n="workflows.nodes.tool">工具</option>
+                                        <option value="agent" data-i18n="workflows.nodes.agent">Agent</option>
+                                        <option value="condition" data-i18n="workflows.nodes.condition">条件</option>
+                                        <option value="hitl" data-i18n="workflows.nodes.hitl">审批</option>
+                                        <option value="output" data-i18n="workflows.nodes.output">输出</option>
+                                        <option value="end" data-i18n="workflows.nodes.end">结束</option>
+                                    </select>
+                                </div>
+                                <div id="workflow-typed-config" class="workflow-typed-config"></div>
+                                <div class="workflow-custom-fields-head">
+                                    <span data-i18n="workflows.customFields">自定义字段</span>
+                                    <button type="button" class="btn-secondary btn-small" data-require-permission="workflow:write" onclick="addWorkflowCustomField()" data-i18n="workflows.addField">添加字段</button>
+                                </div>
+                                <div id="workflow-custom-fields" class="workflow-custom-fields"></div>
+                            </div>
+                            <div id="workflow-dry-run-panel" class="workflow-property-form workflow-dry-run-panel" hidden>
+                                <div class="workflow-custom-fields-head workflow-dry-run-head">
+                                    <span data-i18n="workflows.dryRunTrace">试运行轨迹</span>
+                                    <button type="button" class="role-selection-panel-close workflow-dry-run-close" onclick="closeWorkflowDryRunPanel()" data-i18n="common.close" data-i18n-attr="title,aria-label" title="关闭" aria-label="关闭">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div id="workflow-dry-run-output" class="workflow-property-empty workflow-property-empty--compact"></div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+{{end}}

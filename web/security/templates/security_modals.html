@@ -1,0 +1,55 @@
+{{define "security/modals"}}
+<div id="hitl-log-modal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="hitl-log-modal-title">
+                    <div class="modal-content hitl-log-modal-content">
+                        <div class="modal-header">
+                            <h3 id="hitl-log-modal-title" data-i18n="hitl.logModalView">审计日志详情</h3>
+                            <button type="button" class="modal-close" onclick="closeHitlLogModal()" aria-label="Close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="hitl-log-context-readonly" class="hitl-log-readonly-section" hidden></div>
+                            <div id="hitl-log-execution-readonly" class="hitl-log-readonly-section" hidden></div>
+                            <dl class="hitl-log-detail-meta">
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colId">ID</dt>
+                                    <dd id="hitl-log-detail-id" class="hitl-log-detail-mono">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colTool">工具</dt>
+                                    <dd id="hitl-log-detail-tool">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colConversation">会话</dt>
+                                    <dd id="hitl-log-detail-conversation" class="hitl-log-detail-mono">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colDecision">决策</dt>
+                                    <dd id="hitl-log-detail-decision">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colDecidedBy">审批方</dt>
+                                    <dd id="hitl-log-detail-decided-by">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row" id="hitl-log-detail-engine-row" hidden>
+                                    <dt data-i18n="hitl.colAuditEngine">审批引擎</dt>
+                                    <dd id="hitl-log-detail-engine">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row">
+                                    <dt data-i18n="hitl.colTime">时间</dt>
+                                    <dd id="hitl-log-detail-time">—</dd>
+                                </div>
+                                <div class="hitl-log-detail-row hitl-log-detail-row--full" id="hitl-log-detail-comment-row" hidden>
+                                    <dt data-i18n="hitl.fieldComment">备注</dt>
+                                    <dd id="hitl-log-detail-comment">—</dd>
+                                </div>
+                            </dl>
+                            <div class="hitl-log-detail-payload" id="hitl-log-detail-payload-wrap" hidden>
+                                <div class="hitl-context-label" data-i18n="hitl.fieldPayload">载荷</div>
+                                <pre id="hitl-log-detail-payload" class="hitl-context-text"></pre>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-secondary" onclick="closeHitlLogModal()" data-i18n="common.close">关闭</button>
+                        </div>
+                    </div>
+                </div>
+{{end}}

@@ -1,0 +1,41 @@
+{{define "tools/management"}}
+<div id="page-tools-management" class="page tools-management-page">
+                    <div class="page-header">
+                        <h2 data-i18n="toolsPage.manageTitle">工具管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" onclick="refreshToolsManagement()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-primary" data-require-permission="config:write" onclick="showCreateToolModal()" data-i18n="toolsPage.createTool">新建工具</button>
+                        </div>
+                    </div>
+                    <div class="page-content page-content-with-pagination">
+                        <div class="skills-overview" id="tools-management-stats">
+                            <div class="skills-overview-card skills-overview-card-primary">
+                                <span class="skills-overview-label" data-i18n="toolsPage.overviewTotal">工具</span>
+                                <strong id="tools-total-count">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="toolsPage.overviewEnabled">已启用</span>
+                                <strong id="tools-enabled-count">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="toolsPage.overviewDisabled">已禁用</span>
+                                <strong id="tools-disabled-count">0</strong>
+                            </div>
+                            <div class="skills-overview-card">
+                                <span class="skills-overview-label" data-i18n="toolsPage.overviewCalls">调用总数</span>
+                                <strong id="tools-calls-count">0</strong>
+                            </div>
+                        </div>
+                        <div class="skills-controls">
+                            <div class="skills-search-box">
+                                <input type="text" id="tools-search" data-i18n="toolsPage.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索工具..." oninput="handleToolsSearchInput()" onkeydown="if(event.key==='Enter') searchTools()" />
+                                <button class="skills-search-clear" id="tools-search-clear" onclick="clearToolsSearch()" style="display: none;" data-i18n="common.clearSearch" data-i18n-attr="title" title="清除搜索">&times;</button>
+                            </div>
+                        </div>
+                        <div id="tools-list" class="skills-grid">
+                            <div class="loading-spinner" data-i18n="toolsPage.loading">加载中...</div>
+                        </div>
+                        <div id="tools-pagination" class="pagination-container pagination-fixed"></div>
+                    </div>
+                </div>
+{{end}}

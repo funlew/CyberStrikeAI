@@ -1,0 +1,108 @@
+{{define "roles/modals"}}
+<div id="role-select-modal" class="modal">
+        <div class="modal-content role-select-modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="chat.rolePanelTitle">选择角色</h2>
+                <span class="modal-close" onclick="closeRoleSelectModal()">&times;</span>
+            </div>
+            <div class="modal-body role-select-body">
+                <div id="role-select-list" class="role-select-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 角色编辑模态框 -->
+    <div id="role-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 id="role-modal-title" data-i18n="roleModal.addRole">添加角色</h2>
+                <span class="modal-close" onclick="closeRoleModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="role-name"><span data-i18n="roleModal.roleName">角色名称</span> <span style="color: red;">*</span></label>
+                    <input type="text" id="role-name" data-i18n="roleModal.roleNamePlaceholder" data-i18n-attr="placeholder" placeholder="输入角色名称" required />
+                </div>
+                <div class="form-group">
+                    <label for="role-description" data-i18n="roleModal.roleDescription">角色描述</label>
+                    <input type="text" id="role-description" data-i18n="roleModal.roleDescriptionPlaceholder" data-i18n-attr="placeholder" placeholder="输入角色描述" />
+                </div>
+                <div class="form-group">
+                    <label for="role-icon" data-i18n="roleModal.roleIcon">角色图标</label>
+                    <input type="text" id="role-icon" data-i18n="roleModal.roleIconPlaceholder" data-i18n-attr="placeholder" placeholder="输入emoji图标，例如: 🏆" maxlength="10" />
+                    <small class="form-hint" data-i18n="roleModal.roleIconHint">输入一个emoji作为角色的图标，将显示在角色选择器中。</small>
+                </div>
+                <div class="form-group">
+                    <label for="role-user-prompt" data-i18n="roleModal.userPrompt">用户提示词</label>
+                    <textarea id="role-user-prompt" rows="10" data-i18n="roleModal.userPromptPlaceholder" data-i18n-attr="placeholder" placeholder="输入用户提示词，会在用户消息前追加此提示词..."></textarea>
+                    <small class="form-hint" data-i18n="roleModal.userPromptHint">此提示词会追加到用户消息前，用于指导AI的行为。注意：这不会修改系统提示词。</small>
+                </div>
+                <div class="form-group">
+                    <label for="role-workflow-id" data-i18n="roleModal.bindWorkflow">绑定工作流</label>
+                    <select id="role-workflow-id" class="role-form-select-native">
+                        <option value="" data-i18n="roleModal.noWorkflowBind">不绑定工作流</option>
+                    </select>
+                    <small class="form-hint" data-i18n="roleModal.bindWorkflowHint">选中工作流后，对话页使用该角色会自动触发；工作流字段由图定义 JSON 自由配置。</small>
+                </div>
+                <div class="form-group">
+                    <label for="role-workflow-policy" data-i18n="roleModal.workflowPolicy">工作流触发策略</label>
+                    <select id="role-workflow-policy" class="role-form-select-native">
+                        <option value="auto" data-i18n="roleModal.workflowPolicyAuto">自动触发</option>
+                        <option value="off" data-i18n="roleModal.workflowPolicyOff">关闭</option>
+                    </select>
+                </div>
+                <div class="form-group" id="role-tools-section">
+                    <label data-i18n="roleModal.relatedTools">关联的工具（可选）</label>
+                    <div id="role-tools-default-hint" class="role-tools-default-hint" style="display: none;">
+                        <div class="role-tools-default-info">
+                            <span class="role-tools-default-icon">ℹ️</span>
+                            <div class="role-tools-default-content">
+                                <div class="role-tools-default-title" data-i18n="roleModal.defaultRoleToolsTitle">默认角色使用所有工具</div>
+                                <div class="role-tools-default-desc" data-i18n="roleModal.defaultRoleToolsDesc">默认角色会自动使用MCP管理中启用的所有工具，无需单独配置。</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-tools-controls">
+                        <div class="role-tools-actions">
+                            <button type="button" class="btn-secondary" onclick="selectAllRoleTools()" data-i18n="roleModal.selectAll">全选</button>
+                            <button type="button" class="btn-secondary" onclick="deselectAllRoleTools()" data-i18n="roleModal.deselectAll">全不选</button>
+                            <div id="role-tools-status-filter" class="tools-status-filter">
+                                <button type="button" class="btn-filter active" data-filter="" onclick="filterRoleToolsByStatus('')" data-i18n="roleModal.filterRoleAll">全部</button>
+                                <button type="button" class="btn-filter" data-filter="role_on" onclick="filterRoleToolsByStatus('role_on')" data-i18n="roleModal.filterRoleOn">本角色已开</button>
+                                <button type="button" class="btn-filter" data-filter="role_off" onclick="filterRoleToolsByStatus('role_off')" data-i18n="roleModal.filterRoleOff">本角色已关</button>
+                            </div>
+                            <div class="role-tools-search-box">
+                                <input type="text" id="role-tools-search" data-i18n="roleModal.searchToolsPlaceholder" data-i18n-attr="placeholder" placeholder="搜索工具..." 
+                                       oninput="searchRoleTools(this.value)" 
+                                       onkeypress="if(event.key === 'Enter') searchRoleTools(this.value)" />
+                                <button class="role-tools-search-clear" id="role-tools-search-clear" 
+                                        onclick="clearRoleToolsSearch()" style="display: none;" data-i18n="common.clearSearch" data-i18n-attr="title" title="清除搜索">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="role-tools-stats" class="role-tools-stats"></div>
+                    </div>
+                    <div id="role-tools-list" class="role-tools-list">
+                        <div class="tools-loading" data-i18n="roleModal.loadingTools">正在加载工具列表...</div>
+                    </div>
+                    <small class="form-hint" data-i18n="roleModal.relatedToolsHint">勾选要关联的工具，留空则使用MCP管理中的全部工具配置。</small>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="role-enabled" class="modern-checkbox" checked />
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text" data-i18n="roleModal.enableRole">启用此角色</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeRoleModal()" data-i18n="common.cancel">取消</button>
+                <button class="btn-primary" data-require-permission="roles:write" onclick="saveRole()" data-i18n="common.save">保存</button>
+            </div>
+        </div>
+    </div>
+{{end}}

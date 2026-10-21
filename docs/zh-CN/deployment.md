@@ -75,8 +75,7 @@ go build -o cyberstrike-ai ./cmd/server
 
 交付二进制时仍需要携带：
 
-- `web/templates/`
-- `web/static/`
+- `web/`（含 `core/` 壳层与各业务模块的 `templates/`、`static/`）
 - `tools/`
 - `roles/`
 - `skills/`

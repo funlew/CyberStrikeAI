@@ -45,8 +45,7 @@ go build -o cyberstrike-ai ./cmd/server
 发布包应包含：
 
 - `cyberstrike-ai`
-- `web/templates/`
-- `web/static/`
+- `web/`（含 `core/` 壳层与各业务模块的 `templates/`、`static/`）
 - `config.yaml` 示例。
 - `tools/`
 - `roles/`

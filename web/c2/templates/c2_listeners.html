@@ -1,0 +1,13 @@
+{{define "c2/listeners"}}
+<div id="page-c2-listeners" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="c2.listeners.title">监听器管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-primary" data-require-permission="c2:write" onclick="C2.showCreateListenerModal()" data-i18n="c2.listeners.headerCreateBtn">+ 创建监听器</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div id="c2-listener-grid" class="c2-listener-grid"></div>
+                    </div>
+                </div>
+{{end}}

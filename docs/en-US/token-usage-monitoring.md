@@ -66,7 +66,7 @@ Costs and remaining plan quotas are not displayed. Custom gateways and subscript
 The Chinese guide records these implementation-time checks; this translation does not represent a new execution of them:
 
 - `go test ./...`: the full repository passed.
-- `node --test web/static/js/*.test.cjs`: 295 tests passed.
+- `node --test web/*/static/js/*.test.cjs`: 295 tests passed.
 - Regression coverage was added for cache-write persistence, grouping, recent entries, adding the column to older schemas, user visibility, streaming deduplication, and total-token fallback.
 - DeepSeek JSON/SSE cache-field conversion, standard-field precedence, preservation of error/termination chunks, and very large number precision passed validation.
 - Browser checks used synthetic data for desktop, 390px mobile, dark mode, model-name escaping, empty data, and unavailable API states. No real run database or paid model was accessed.

@@ -24,12 +24,12 @@ flowchart LR
 
 入口在 `cmd/server/`，应用组装在 `internal/app/`。Web 使用 Gin：
 
-- `web/templates/index.html`：主页面。
-- `web/templates/api-docs.html`：API 文档页面。
-- `web/static/js/`：各业务模块前端逻辑。
-- `web/static/css/`：样式。
+- `web/core/templates/index.html`：页面骨架（登录浮层、顶栏、侧边导航、脚本装配）。
+- `web/<module>/templates/`：各功能模块的页面与弹窗片段，通过 `{{template "<module>/<part>" .}}` 组合进骨架。
+- `web/<module>/static/{js,css}`：各模块自有前端脚本与样式，按 `/static/<module>/...` 挂载。
+- `web/api-docs/templates/api-docs.html`：API 文档页面。
 
-路由注册集中在 `internal/app/app.go`。
+路由注册集中在 `internal/app/app.go`，前端模块划分与模板/静态加载细节见 [Web 前端模块化重构](web-modularization.md)。
 
 ## Handler 层
 

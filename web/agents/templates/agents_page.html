@@ -1,0 +1,18 @@
+{{define "agents/page"}}
+<div id="page-agents-management" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="agentsPage.title">Agent 管理</h2>
+                        <div class="page-header-actions">
+                            <button type="button" class="btn-secondary" onclick="loadMarkdownAgents()" data-i18n="common.refresh">刷新</button>
+                            <button type="button" class="btn-primary" data-require-permission="agents:write" onclick="showAddMarkdownAgentModal()" data-i18n="agentsPage.create">新建 Agent</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <p class="agents-page-hint" data-i18n="agentsPage.hint">子 Agent 仅在 agents 目录下 .md 维护。</p>
+                        <div id="agents-md-dir" class="agents-dir-label"></div>
+                        <div id="agents-md-list" class="skills-grid">
+                            <div class="loading-spinner" data-i18n="agentsPage.loading">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

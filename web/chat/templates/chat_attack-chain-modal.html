@@ -1,0 +1,116 @@
+{{define "chat/attack-chain-modal"}}
+<div id="attack-chain-modal" class="modal">
+        <div class="modal-content attack-chain-modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="attackChainModal.title">攻击链可视化</h2>
+                <div class="modal-header-actions">
+                    <button class="btn-primary attack-chain-action-btn" data-require-permission="attackchain:write" onclick="regenerateAttackChain()" data-i18n="attackChainModal.regenerateTitle" data-i18n-attr="title" data-i18n-skip-text="true" title="重新生成攻击链（包含最新对话内容）">
+                        <span data-i18n="attackChainModal.regenerate">重新生成</span>
+                    </button>
+                    <button class="btn-secondary attack-chain-action-btn" onclick="exportAttackChain('png')" data-i18n="attackChainModal.exportPng" data-i18n-attr="title" title="导出为PNG">
+                        📥 PNG
+                    </button>
+                    <button class="btn-secondary attack-chain-action-btn" onclick="exportAttackChain('svg')" data-i18n="attackChainModal.exportSvg" data-i18n-attr="title" title="导出为SVG">
+                        📥 SVG
+                    </button>
+                    <button class="btn-secondary attack-chain-action-btn" onclick="refreshAttackChain()" data-i18n="attackChainModal.refreshTitle" data-i18n-attr="title" title="刷新当前攻击链（不重新生成）">
+                        <span data-i18n="common.refresh">刷新</span>
+                    </button>
+                    <span class="modal-close" onclick="closeAttackChainModal()">&times;</span>
+                </div>
+            </div>
+            <div class="modal-body attack-chain-body">
+                <div class="attack-chain-main-layout">
+                    <div class="attack-chain-visualization-area">
+                        <div class="attack-chain-toolbar">
+                            <div class="attack-chain-info">
+                                <span id="attack-chain-stats">Nodes: 0 | Edges: 0</span>
+                            </div>
+                            <div class="attack-chain-filters">
+                                <input type="text" id="attack-chain-search" data-i18n="attackChainModal.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索节点..." 
+                                       oninput="filterAttackChainNodes(this.value)">
+                                <select id="attack-chain-type-filter" 
+                                        onchange="filterAttackChainByType(this.value)">
+                                    <option value="all" data-i18n="attackChainModal.allTypes">所有类型</option>
+                                    <option value="target" data-i18n="attackChainModal.target">目标</option>
+                                    <option value="action" data-i18n="attackChainModal.action">行动</option>
+                                    <option value="vulnerability" data-i18n="attackChainModal.vulnerability">漏洞</option>
+                                </select>
+                                <select id="attack-chain-risk-filter"
+                                        onchange="filterAttackChainByRisk(this.value)">
+                                    <option value="all" data-i18n="attackChainModal.allRisks">所有风险</option>
+                                    <option value="high" data-i18n="attackChainModal.highRisk">高风险 (80-100)</option>
+                                    <option value="medium-high" data-i18n="attackChainModal.mediumHighRisk">中高风险 (60-79)</option>
+                                    <option value="medium" data-i18n="attackChainModal.mediumRisk">中风险 (40-59)</option>
+                                    <option value="low" data-i18n="attackChainModal.lowRisk">低风险 (0-39)</option>
+                                </select>
+                                <button class="btn-secondary" onclick="resetAttackChainFilters()" data-i18n="attackChainModal.resetFilter">
+                                    重置筛选
+                                </button>
+                            </div>
+                        </div>
+                        <div id="attack-chain-container" class="attack-chain-container">
+                            <div class="loading-spinner" data-i18n="attackChainModal.loading">加载中...</div>
+                        </div>
+                    </div>
+                    <div class="attack-chain-sidebar">
+                        <div class="attack-chain-sidebar-content">
+                            <details id="attack-chain-context" class="attack-chain-context" hidden>
+                                <summary><span id="attack-chain-context-title"></span></summary>
+                                <p id="attack-chain-context-notice" class="attack-chain-context-notice"></p>
+                                <div id="attack-chain-context-content"></div>
+                            </details>
+                            <div class="attack-chain-legend">
+                                <div class="legend-section">
+                                    <div class="legend-title" data-i18n="attackChainModal.riskLevel">风险等级</div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #ff4444;"></span>
+                                        <span data-i18n="attackChainModal.highRisk">高风险 (80-100)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #ff8800;"></span>
+                                        <span data-i18n="attackChainModal.mediumHighRisk">中高风险 (60-79)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #ffbb00;"></span>
+                                        <span data-i18n="attackChainModal.mediumRisk">中风险 (40-59)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #88cc00;"></span>
+                                        <span data-i18n="attackChainModal.lowRisk">低风险 (0-39)</span>
+                                    </div>
+                                </div>
+                                <div class="legend-section">
+                                    <div class="legend-title" data-i18n="attackChainModal.lineMeaning">连接线含义</div>
+                                    <div class="legend-item">
+                                        <span class="legend-line" style="border-top: 2px solid #42a5f5;"></span>
+                                        <span data-i18n="attackChainModal.blueLine">蓝色线：行动发现漏洞</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-line" style="border-top: 2px solid #e53935;"></span>
+                                        <span data-i18n="attackChainModal.redLine">红色线：使能/促成关系</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-line" style="border-top: 2px solid #616161;"></span>
+                                        <span data-i18n="attackChainModal.grayLine">灰色线：逻辑顺序</span>
+                                    </div>
+                                </div>
+                                <div id="attack-chain-details" class="legend-section attack-chain-details" style="display: none;">
+                                    <div class="legend-title attack-chain-details-title">
+                                        <span data-i18n="attackChainModal.nodeDetails">节点详情</span>
+                                        <button class="attack-chain-details-close" onclick="closeNodeDetails()" data-i18n="attackChainModal.closeDetails" data-i18n-attr="title" title="关闭详情">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div id="attack-chain-details-content" class="attack-chain-details-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

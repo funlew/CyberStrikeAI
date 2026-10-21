@@ -1,0 +1,84 @@
+{{define "mcp/detail-modal"}}
+<div id="mcp-detail-modal" class="modal">
+        <div class="modal-content mcp-detail-content">
+            <div class="modal-header">
+                <h2 data-i18n="mcpDetailModal.title">工具调用详情</h2>
+                <span class="modal-close" onclick="closeMCPDetail()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section detail-section-overview">
+                    <div class="detail-section-header">
+                        <h3 data-i18n="mcpDetailModal.execInfo">执行信息</h3>
+                    </div>
+                    <div class="detail-info-grid">
+                        <div class="detail-item">
+                            <strong data-i18n="mcpDetailModal.tool">工具</strong>
+                            <span id="detail-tool-name"></span>
+                        </div>
+                        <div class="detail-item">
+                            <strong data-i18n="mcpDetailModal.status">状态</strong>
+                            <span id="detail-status" class="status-chip status-unknown"></span>
+                        </div>
+                        <div class="detail-item">
+                            <strong data-i18n="mcpDetailModal.time">时间</strong>
+                            <span id="detail-time"></span>
+                        </div>
+                        <div class="detail-item">
+                            <strong data-i18n="mcpDetailModal.executionId">执行 ID</strong>
+                            <span id="detail-execution-id" class="mono-text"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section detail-abort-section" id="detail-abort-section" style="display: none;">
+                    <div class="detail-section-header">
+                        <h3 data-i18n="mcpDetailModal.abortTitle">运行控制</h3>
+                    </div>
+                    <p class="detail-abort-hint" data-i18n="mcpDetailModal.abortHint">仅中断当前工具调用；对话与多步任务会继续。</p>
+                    <button type="button" class="btn-secondary btn-monitor-abort" id="detail-abort-btn" onclick="abortMCPToolExecutionFromDetail()">终止工具</button>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <h3 data-i18n="mcpDetailModal.requestParams">请求参数</h3>
+                        <button class="btn-ghost" type="button" onclick="copyDetailBlock('detail-request', this)" data-i18n="mcpDetailModal.copyJson">复制 JSON</button>
+                    </div>
+                    <div class="detail-code-card">
+                        <pre id="detail-request" class="code-block"></pre>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <h3 data-i18n="mcpDetailModal.responseResult">响应结果</h3>
+                        <button class="btn-ghost" type="button" onclick="copyActiveMCPResultDetail(this)" data-i18n="mcpDetailModal.copyContent">复制内容</button>
+                    </div>
+                    <div class="detail-result-tabs" role="tablist" aria-label="响应结果视图">
+                        <button id="detail-result-tab-success" class="detail-result-tab active" type="button" role="tab" aria-selected="true" aria-controls="detail-result-panel-success" onclick="switchMCPResultDetailTab('success')">
+                            <span data-i18n="mcpDetailModal.correctInfo">正确信息</span>
+                        </button>
+                        <button id="detail-result-tab-raw" class="detail-result-tab" type="button" role="tab" aria-selected="false" aria-controls="detail-result-panel-raw" onclick="switchMCPResultDetailTab('raw')">
+                            <span data-i18n="mcpDetailModal.rawResponse">原始响应</span>
+                        </button>
+                    </div>
+                    <div id="detail-result-panel-success" class="detail-result-panel active" role="tabpanel" aria-labelledby="detail-result-tab-success">
+                        <div class="detail-code-card detail-success-code-card">
+                            <pre id="detail-success" class="code-block"></pre>
+                        </div>
+                    </div>
+                    <div id="detail-result-panel-raw" class="detail-result-panel" role="tabpanel" aria-labelledby="detail-result-tab-raw" hidden>
+                        <div class="detail-code-card">
+                            <pre id="detail-response" class="code-block"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section detail-error-wrapper" id="detail-error-section" style="display: none;">
+                    <div class="detail-section-header">
+                        <h3 data-i18n="mcpDetailModal.errorInfo">错误信息</h3>
+                        <button class="btn-ghost" type="button" onclick="copyDetailBlock('detail-error', this)" data-i18n="mcpDetailModal.copyError">复制错误</button>
+                    </div>
+                    <div class="detail-code-card">
+                        <pre id="detail-error" class="code-block error"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

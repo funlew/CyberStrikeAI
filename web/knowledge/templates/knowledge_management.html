@@ -1,0 +1,61 @@
+{{define "knowledge/management"}}
+<div id="page-knowledge-management" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="knowledge.title">知识管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" onclick="refreshKnowledgeBase()" data-i18n="common.refresh">刷新</button>
+                            <button class="btn-secondary" data-require-permission="knowledge:write" onclick="buildKnowledgeIndex()" data-i18n="knowledge.buildIndex">构建索引</button>
+                            <button class="btn-secondary" data-require-permission="knowledge:write" onclick="rebuildKnowledgeIndexFull()" data-i18n="knowledge.rebuildIndexFull">全量重建</button>
+                            <button class="btn-primary" data-require-permission="knowledge:write" onclick="showAddKnowledgeItemModal()" data-i18n="knowledge.addKnowledge">添加知识</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="knowledge-controls">
+                            <div class="knowledge-stats-bar" id="knowledge-stats">
+                                <div class="knowledge-stat-item">
+                                    <span class="knowledge-stat-label" data-i18n="knowledge.totalItems">总知识项</span>
+                                    <span class="knowledge-stat-value">-</span>
+                                </div>
+                                <div class="knowledge-stat-item">
+                                    <span class="knowledge-stat-label" data-i18n="knowledge.categories">分类数</span>
+                                    <span class="knowledge-stat-value">-</span>
+                                </div>
+                                <div class="knowledge-stat-item">
+                                    <span class="knowledge-stat-label" data-i18n="knowledgePage.totalContent">总内容</span>
+                                    <span class="knowledge-stat-value">-</span>
+                                </div>
+                            </div>
+                            <div id="knowledge-index-progress" style="display: none; margin-bottom: 16px;"></div>
+                            <div class="knowledge-filters">
+                                <label>
+                                    <span data-i18n="knowledgePage.categoryFilter">分类筛选</span>
+                                    <div class="custom-select-wrapper">
+                                        <div class="custom-select" id="knowledge-category-filter-wrapper">
+                                            <div class="custom-select-trigger" id="knowledge-category-filter-trigger">
+                                                <span data-i18n="knowledgePage.all">全部</span>
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <div class="custom-select-dropdown" id="knowledge-category-filter-dropdown">
+                                                <div class="custom-select-option" data-value="" onclick="selectKnowledgeCategory('')" data-i18n="knowledgePage.all">全部</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="knowledge-search-field">
+                                    <span data-i18n="common.search">搜索</span>
+                                    <div class="search-box">
+                                        <input type="text" id="knowledge-search" data-i18n="knowledgePage.searchPlaceholder" data-i18n-attr="placeholder" placeholder="搜索知识..." oninput="handleKnowledgeSearchInput()" onkeydown="if(event.key==='Enter') searchKnowledgeItems()" />
+                                        <button class="btn-search" onclick="searchKnowledgeItems()" data-i18n="common.search" data-i18n-attr="title" title="搜索">🔍</button>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="knowledge-items-list" class="knowledge-items-list">
+                            <div class="loading-spinner" data-i18n="knowledgePage.loading">加载中...</div>
+                        </div>
+                        <div id="knowledge-pagination"></div>
+                    </div>
+                </div>
+{{end}}

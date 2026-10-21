@@ -18,8 +18,11 @@ internal/workflow/       graph orchestration runtime
 internal/knowledge/      indexing and retrieval
 internal/c2/             built-in C2
 internal/project/        project fact blackboard
-web/static/              frontend JS/CSS/assets
-web/templates/           HTML templates
+web/core/                layout shell templates plus shared JS/CSS/vendor/i18n
+web/<module>/            feature modules, each with its own templates/ and static/
+                         (dashboard, chat, security, assets, projects, vulnerabilities,
+                          tasks, workflows, webshell, c2, mcp, skills, tools, agents,
+                          roles, knowledge, rbac, settings, api-docs)
 tools/                   YAML command tools
 roles/                   role YAML
 agents/                  multi-agent Markdown definitions
@@ -33,7 +36,7 @@ docs/                    documentation
 go run ./cmd/server --config config.yaml
 ```
 
-The frontend is static. Most JS/CSS/template changes only require a browser refresh.
+The frontend is static: `web/core/templates/index.html` is the layout shell, each feature module keeps its pages and dialogs in `web/<module>/templates/` and its scripts/styles in `web/<module>/static/`, served under `/static/<module>/...`. Most changes only require a browser refresh.
 
 ## One-Click Update: Letting an Installation Update Its Own Source
 
@@ -224,7 +227,7 @@ Built-in tools should define clear input schemas, handle timeouts and errors, an
 
 ## Frontend Changes
 
-Use existing helpers such as `apiFetch`, modal utilities, notifications, and i18n. Update both `web/static/i18n/zh-CN.json` and `web/static/i18n/en-US.json` for new visible text.
+Use existing helpers such as `apiFetch`, modal utilities, notifications, and i18n. Update both `web/core/static/i18n/zh-CN.json` and `web/core/static/i18n/en-US.json` for new visible text.
 
 Avoid putting secrets or provider keys in frontend code.
 

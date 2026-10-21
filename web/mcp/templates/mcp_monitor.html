@@ -1,0 +1,63 @@
+{{define "mcp/monitor"}}
+<div id="page-mcp-monitor" class="page mcp-monitor-page">
+                    <div class="page-header">
+                        <div class="page-header-main">
+                            <h2 data-i18n="mcp.monitorTitle">MCP 状态监控</h2>
+                            <p id="monitor-stats-subtitle" class="monitor-page-subtitle" hidden></p>
+                        </div>
+                        <div class="page-header-actions">
+                            <button type="button" class="btn-secondary btn-icon-text" onclick="refreshMonitorPanel()" aria-label="刷新">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                <span data-i18n="common.refresh">刷新</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="monitor-sections">
+                            <section class="monitor-section monitor-overview">
+                                <div id="monitor-stats" class="mcp-exec-stats-root">
+                                    <div class="monitor-empty" data-i18n="mcpMonitor.loading">加载中...</div>
+                                </div>
+                            </section>
+                            <section class="monitor-section monitor-executions">
+                                <div class="section-header">
+                                    <h3 data-i18n="mcp.latestExecutions">最新执行记录</h3>
+                                    <div class="section-actions">
+                                        <label>
+                                            <span data-i18n="mcp.toolSearch">工具搜索</span>
+                                            <input type="text" id="monitor-tool-filter" data-i18n="mcp.toolSearchPlaceholder" data-i18n-attr="placeholder" placeholder="输入工具名称..." oninput="handleToolFilterInput()" onkeydown="if(event.key==='Enter') applyMonitorFilters()" />
+                                        </label>
+                                        <label>
+                                            <span data-i18n="mcp.statusFilter">状态筛选</span>
+                                            <select id="monitor-status-filter" class="monitor-filter-select-native">
+                                                <option value="all" data-i18n="mcp.filterAll">全部</option>
+                                                <option value="completed" data-i18n="mcpMonitor.statusCompleted">已完成</option>
+                                                <option value="running" data-i18n="mcpMonitor.statusRunning">执行中</option>
+                                                <option value="queued" data-i18n="mcpMonitor.statusQueued">排队中</option>
+                                                <option value="failed" data-i18n="mcpMonitor.statusFailed">失败</option>
+                                                <option value="blocked" data-i18n="mcpMonitor.statusBlocked">已拦截</option>
+                                                <option value="hard_timeout" data-i18n="mcpMonitor.statusHardTimeout">执行超时</option>
+                                                <option value="cancelled" data-i18n="mcpMonitor.statusCancelled">已终止</option>
+                                                <option value="orphaned" data-i18n="mcpMonitor.statusOrphaned">孤儿任务</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div id="monitor-batch-actions" class="monitor-batch-actions" style="display: none;">
+                                    <div class="batch-actions-info">
+                                        <span id="monitor-selected-count">已选择 0 项</span>
+                                    </div>
+                                    <div class="batch-actions-buttons">
+                                        <button class="btn-secondary" onclick="selectAllExecutions()" data-i18n="mcp.selectAll">全选</button>
+                                        <button class="btn-secondary" onclick="deselectAllExecutions()" data-i18n="mcpMonitor.deselectAll">取消全选</button>
+                                        <button class="btn-secondary btn-delete" data-require-permission="monitor:delete" onclick="batchDeleteExecutions()" data-i18n="mcp.deleteSelected">批量删除</button>
+                                    </div>
+                                </div>
+                                <div id="monitor-executions" class="monitor-table-container">
+                                    <div class="monitor-empty" data-i18n="mcpMonitor.loading">加载中...</div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+{{end}}

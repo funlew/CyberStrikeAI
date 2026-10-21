@@ -1,0 +1,30 @@
+{{define "tools/status"}}
+<div id="page-tools-status" class="page tools-status-page">
+                    <div class="page-header">
+                        <h2 data-i18n="toolsPage.statusTitle">工具状态</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-secondary" onclick="refreshToolsStatus()" data-i18n="common.refresh">刷新</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="monitor-sections">
+                            <section class="monitor-section monitor-overview">
+                                <div class="section-header">
+                                    <h3 data-i18n="toolsPage.overview">概览</h3>
+                                </div>
+                                <div id="tools-status-stats" class="monitor-stats-grid">
+                                    <div class="monitor-empty" data-i18n="toolsPage.loading">加载中...</div>
+                                </div>
+                            </section>
+                            <section class="monitor-section monitor-executions">
+                                <div class="section-header">
+                                    <h3 data-i18n="toolsPage.callStats">工具调用统计</h3>
+                                </div>
+                                <div id="tools-status-list" class="monitor-table-container">
+                                    <div class="monitor-empty" data-i18n="toolsPage.loading">加载中...</div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+{{end}}

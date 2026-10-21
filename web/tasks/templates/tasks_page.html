@@ -1,0 +1,43 @@
+{{define "tasks/page"}}
+<div id="page-tasks" class="page">
+                    <div class="page-header">
+                        <h2 data-i18n="tasks.title">任务管理</h2>
+                        <div class="page-header-actions">
+                            <button class="btn-primary" data-require-permission="tasks:write" onclick="showBatchImportModal()" data-i18n="tasks.newTask">新建任务</button>
+                            <label class="auto-refresh-toggle">
+                                <input type="checkbox" id="tasks-auto-refresh" checked onchange="toggleTasksAutoRefresh(this.checked)">
+                                <span data-i18n="tasks.autoRefresh">自动刷新</span>
+                            </label>
+                            <button class="btn-secondary" onclick="refreshBatchQueues()" data-i18n="common.refresh">刷新</button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <!-- 批量任务队列列表 -->
+                        <div class="batch-queues-section" id="batch-queues-section" style="display: none;">
+                            <!-- 筛选控件 -->
+                            <div class="batch-queues-filters tasks-filters batch-queues-filters--compact">
+                                <label>
+                                    <span data-i18n="tasksPage.statusFilter">状态筛选</span>
+                                    <select id="batch-queues-status-filter" class="tasks-filter-select">
+                                        <option value="all" data-i18n="knowledgePage.all">全部</option>
+                                        <option value="pending" data-i18n="tasksPage.statusPending">待执行</option>
+                                        <option value="running" data-i18n="dashboard.executing">执行中</option>
+                                        <option value="paused" data-i18n="tasksPage.statusPaused">已暂停</option>
+                                        <option value="completed" data-i18n="dashboard.completed">已完成</option>
+                                        <option value="cancelled" data-i18n="tasksPage.statusCancelled">已取消</option>
+                                    </select>
+                                </label>
+                                <label class="batch-queues-filters__search">
+                                    <span data-i18n="tasksPage.searchQueuePlaceholder">搜索队列ID、标题或创建时间</span>
+                                    <input type="text" id="batch-queues-search" data-i18n="tasksPage.searchKeywordPlaceholder" data-i18n-attr="placeholder" placeholder="输入关键字搜索..." 
+                                           oninput="filterBatchQueues()">
+                                </label>
+                            </div>
+                            <div class="batch-queues-board">
+                                <div id="batch-queues-list" class="batch-queues-list"></div>
+                                <div id="batch-queues-pagination" class="pagination-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+{{end}}

@@ -1,0 +1,73 @@
+{{define "mcp/modals"}}
+<div id="mcp-tool-abort-modal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2 data-i18n="mcpDetailModal.abortNoteModalTitle">终止工具并补充说明</h2>
+                <span class="modal-close" onclick="closeMcpToolAbortModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="detail-abort-hint" data-i18n="mcpDetailModal.abortNoteModalHint">可选说明。</p>
+                <div class="form-group">
+                    <label for="mcp-tool-abort-note"><span data-i18n="mcpDetailModal.abortNoteLabel">终止说明（可选）</span></label>
+                    <textarea id="mcp-tool-abort-note" class="form-control" rows="4" data-i18n="mcpDetailModal.abortNotePlaceholder" data-i18n-attr="placeholder" placeholder=""></textarea>
+                </div>
+                <div class="form-actions" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeMcpToolAbortModal()" data-i18n="mcpDetailModal.abortNoteClose">取消</button>
+                    <button type="button" class="btn-primary" onclick="submitMcpToolAbortModal()" data-i18n="mcpDetailModal.abortNoteSubmit">提交终止</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部MCP配置模态框 -->
+    <div id="external-mcp-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 id="external-mcp-modal-title" data-i18n="mcp.addExternalMCP">添加外部MCP</h2>
+                <span class="modal-close" onclick="closeExternalMCPModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="external-mcp-json"><span data-i18n="externalMcpModal.configJson">配置JSON</span> <span style="color: red;">*</span></label>
+                    <textarea id="external-mcp-json" rows="15" data-i18n="externalMcpModal.placeholder" data-i18n-attr="placeholder" style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 0.875rem; line-height: 1.5;"></textarea>
+                    <div class="form-actions" style="justify-content: flex-start; margin-top: 0;">
+                        <button type="button" class="btn-secondary" onclick="formatExternalMCPJSON()" data-i18n="externalMcpModal.formatJson">格式化JSON</button>
+                        <button type="button" class="btn-secondary" onclick="loadExternalMCPExample()" data-i18n="externalMcpModal.loadExample">加载示例</button>
+                    </div>
+                    <div class="password-hint">
+                        <strong data-i18n="externalMcpModal.formatLabel">配置格式：</strong><span data-i18n="externalMcpModal.formatDesc">JSON对象，key为配置名称，value为配置内容。状态通过"启动/停止"按钮控制，无需在JSON中配置。</span><br>
+                        <strong data-i18n="externalMcpModal.configExample">配置示例：</strong><br>
+                        <strong data-i18n="externalMcpModal.stdioMode">stdio模式：</strong><br>
+                        <code data-i18n="externalMcpModal.exampleStdio" style="display: block; margin: 8px 0; padding: 8px; background: var(--bg-secondary); border-radius: 4px; white-space: pre-wrap;">{
+  "hexstrike-ai": {
+    "command": "python3",
+    "args": ["/path/to/script.py", "--server", "http://example.com"],
+    "description": "描述",
+    "timeout": 300
+  }
+}</code>
+                        <strong data-i18n="externalMcpModal.httpMode">HTTP模式：</strong><br>
+                        <code data-i18n="externalMcpModal.exampleHttp" style="display: block; margin: 8px 0; padding: 8px; background: var(--bg-secondary); border-radius: 4px; white-space: pre-wrap;">{
+  "cyberstrike-ai-http": {
+    "transport": "http",
+    "url": "http://127.0.0.1:8081/mcp"
+  }
+}</code>
+                        <strong data-i18n="externalMcpModal.sseMode">SSE模式：</strong><br>
+                        <code data-i18n="externalMcpModal.exampleSse" style="display: block; margin: 8px 0; padding: 8px; background: var(--bg-secondary); border-radius: 4px; white-space: pre-wrap;">{
+  "cyberstrike-ai-sse": {
+    "transport": "sse",
+    "url": "http://127.0.0.1:8081/mcp/sse"
+  }
+}</code>
+                    </div>
+                    <div id="external-mcp-json-error" class="error-message" style="display: none; margin-top: 8px; padding: 8px; background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 4px; color: var(--error-color); font-size: 0.875rem;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeExternalMCPModal()" data-i18n="common.cancel">取消</button>
+                <button class="btn-primary" data-require-permission="mcp:write" onclick="saveExternalMCP()" data-i18n="common.save">保存</button>
+            </div>
+        </div>
+    </div>
+{{end}}

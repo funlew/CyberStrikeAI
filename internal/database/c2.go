@@ -1313,6 +1313,10 @@ func (db *DB) PopQueuedC2Tasks(sessionID string, limit int) ([]*C2Task, error) {
 		}
 		list = append(list, &t)
 	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return nil, err
+	}
 	rows.Close()
 
 	now := time.Now()

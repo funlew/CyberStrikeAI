@@ -113,6 +113,9 @@ func (db *DB) LoadAttackChainNodes(conversationID string) ([]AttackChainNode, er
 
 		nodes = append(nodes, node)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历攻击链节点失败: %w", err)
+	}
 
 	return nodes, nil
 }
@@ -143,6 +146,9 @@ func (db *DB) LoadAttackChainEdges(conversationID string) ([]AttackChainEdge, er
 		}
 
 		edges = append(edges, edge)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历攻击链边失败: %w", err)
 	}
 
 	return edges, nil

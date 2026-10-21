@@ -259,6 +259,9 @@ func (db *DB) LoadToolExecutionsWithPagination(offset, limit int, status, toolNa
 
 		executions = append(executions, &exec)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return executions, nil
 }
@@ -379,6 +382,9 @@ func (db *DB) LoadToolStatsSummary(topN int) (*ToolStatsSummaryResult, error) {
 		}
 		result.TopTools = append(result.TopTools, &stat)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return result, nil
 }
@@ -490,6 +496,9 @@ func (db *DB) LoadToolExecutionListPageForAccess(offset, limit int, status, tool
 			exec.Duration = time.Duration(durationMs.Int64) * time.Millisecond
 		}
 		executions = append(executions, &exec)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return executions, nil
@@ -825,6 +834,9 @@ func (db *DB) GetToolExecutionsByIds(ids []string) ([]*mcp.ToolExecution, error)
 
 		executions = append(executions, &exec)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return executions, nil
 }
@@ -969,6 +981,9 @@ func (db *DB) LoadToolStats() (map[string]*mcp.ToolStats, error) {
 
 		stats[stat.ToolName] = &stat
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return stats, nil
 }
@@ -1074,6 +1089,9 @@ func (db *DB) LoadCallsTimeline(since time.Time, dailyBuckets bool) ([]CallsTime
 			Failed:     failed,
 			Blocked:    blocked,
 		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return buckets, nil
 }

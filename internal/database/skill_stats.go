@@ -82,6 +82,10 @@ func (db *DB) LoadSkillStats() (map[string]*SkillStats, error) {
 
 		stats[stat.SkillName] = &stat
 	}
+	if err := rows.Err(); err != nil {
+		db.logger.Warn("遍历Skills统计信息失败", zap.Error(err))
+		return nil, err
+	}
 
 	return stats, nil
 }

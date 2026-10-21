@@ -1054,6 +1054,9 @@ func (db *DB) GetMessages(conversationID string) ([]Message, error) {
 
 		messages = append(messages, msg)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历消息失败: %w", err)
+	}
 
 	return messages, nil
 }
@@ -1109,6 +1112,9 @@ func (db *DB) GetMessagesLite(conversationID string) ([]Message, error) {
 		}
 
 		messages = append(messages, msg)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历消息失败: %w", err)
 	}
 
 	return messages, nil
@@ -1285,6 +1291,9 @@ ORDER BY created_at ASC, rowid ASC`, assistantMessageID)
 			planningParts = append(planningParts, msg)
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return AssistantCognitionTexts{}, err
+	}
 	return AssistantCognitionTexts{
 		Thinking:       strings.Join(thinkingParts, "\n\n"),
 		ReasoningChain: strings.Join(reasoningParts, "\n\n"),
@@ -1389,6 +1398,9 @@ func (db *DB) GetProcessDetails(messageID string) ([]ProcessDetail, error) {
 		}
 
 		details = append(details, detail)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历过程详情失败: %w", err)
 	}
 
 	return details, nil
@@ -1643,6 +1655,9 @@ LIMIT 1`, messageID).Scan(&terminalEvent, &terminalCreatedAt)
 			maxIter = int(n)
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return summary, fmt.Errorf("遍历迭代详情失败: %w", err)
+	}
 	summary.IterationCount = iterCount
 	summary.MaxIteration = maxIter
 	return summary, nil
@@ -1787,6 +1802,9 @@ func (db *DB) GetProcessDetailsPage(messageID string, limit, offset int) ([]Proc
 
 		details = append(details, detail)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("遍历过程详情失败: %w", err)
+	}
 
 	return details, total, nil
 }
@@ -1852,6 +1870,9 @@ func (db *DB) GetProcessDetailsByConversation(conversationID string) (map[string
 		}
 
 		detailsMap[detail.MessageID] = append(detailsMap[detail.MessageID], detail)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历过程详情失败: %w", err)
 	}
 
 	return detailsMap, nil

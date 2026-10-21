@@ -1309,6 +1309,10 @@ func (db *DB) GetAssetStats(access RBACListAccess, requestedDays ...int) (map[st
 		}
 		assetDaily[day] = map[string]int{"added": added, "inactive": 0}
 	}
+	if err := trendRows.Err(); err != nil {
+		trendRows.Close()
+		return nil, err
+	}
 	if err := trendRows.Close(); err != nil {
 		return nil, err
 	}
@@ -1328,6 +1332,10 @@ func (db *DB) GetAssetStats(access RBACListAccess, requestedDays ...int) (map[st
 			assetDaily[day] = map[string]int{"added": 0, "inactive": 0}
 		}
 		assetDaily[day]["inactive"] = inactive
+	}
+	if err := inactiveRows.Err(); err != nil {
+		inactiveRows.Close()
+		return nil, err
 	}
 	if err := inactiveRows.Close(); err != nil {
 		return nil, err
@@ -1349,6 +1357,10 @@ func (db *DB) GetAssetStats(access RBACListAccess, requestedDays ...int) (map[st
 			return nil, err
 		}
 		riskDaily[day] = map[string]int{"discovered": discovered, "high_risk": highRisk}
+	}
+	if err := riskRows.Err(); err != nil {
+		riskRows.Close()
+		return nil, err
 	}
 	if err := riskRows.Close(); err != nil {
 		return nil, err

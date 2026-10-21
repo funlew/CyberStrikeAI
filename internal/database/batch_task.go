@@ -168,6 +168,9 @@ func (db *DB) GetAllBatchQueues() ([]*BatchTaskQueueRow, error) {
 		row.CreatedAt = parsedTime
 		queues = append(queues, &row)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历批量任务队列失败: %w", err)
+	}
 
 	return queues, nil
 }
@@ -239,6 +242,9 @@ func (db *DB) ListBatchQueuesForAccess(limit, offset int, status, keyword, userI
 		}
 		row.CreatedAt = parsedTime
 		queues = append(queues, &row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历批量任务队列失败: %w", err)
 	}
 
 	return queues, nil
@@ -315,6 +321,9 @@ func (db *DB) GetBatchTasks(queueID string) ([]*BatchTaskRow, error) {
 			return nil, fmt.Errorf("扫描批量任务失败: %w", err)
 		}
 		tasks = append(tasks, &task)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历批量任务失败: %w", err)
 	}
 
 	return tasks, nil

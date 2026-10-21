@@ -149,6 +149,10 @@ func (db *DB) BootstrapRBAC(adminPasswordHash string, permissions map[string]str
 			stalePermissionKeys = append(stalePermissionKeys, key)
 		}
 	}
+	if err := permissionRows.Err(); err != nil {
+		_ = permissionRows.Close()
+		return err
+	}
 	if err := permissionRows.Close(); err != nil {
 		return err
 	}

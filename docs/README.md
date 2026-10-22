@@ -34,6 +34,7 @@ CyberStrikeAI documentation is organized by user journey. Start with deployment,
 - [项目任务续接](zh-CN/project-resume.md)
 - [Token 用量分析](zh-CN/token-usage-monitoring.md)
 - [知识库](zh-CN/knowledge-base.md)
+- [知识库嵌入 404 修复方案](zh-CN/knowledge-embedding-404-fix-plan.md)
 - [RBAC 权限管理](zh-CN/rbac.md)
 - [机器人接入](zh-CN/robot.md)
 - [视觉分析](zh-CN/VISION.md)
